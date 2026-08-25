@@ -1,0 +1,10 @@
+node_modules
+.next
+.env
+.env.local
+.env.*
+.state-backup
+fpl helper/
+fpl-helper-main/
+.DS_Store
+npm-debug.log*
