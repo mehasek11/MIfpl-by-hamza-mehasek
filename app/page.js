@@ -3294,26 +3294,7 @@ export default function SquadRoom() {
     const isLive = Boolean(playerFixture?.started) && !Boolean(playerFixture?.finished) && fixtureMinutes < 90;
     const isFinished = Boolean(playerFixture?.finished) || fixtureMinutes >= 90;
 
-    let pointsValue;
-    let pointsLabel;
-
-    if (isLive) {
-      pointsValue = hasGwPoints ? effectiveGwPoints : seasonPoints;
-      pointsLabel = 'LIVE';
-    } else if (isFinished) {
-      pointsValue = hasGwPoints ? effectiveGwPoints : seasonPoints;
-      pointsLabel = null;
-    } else if (minutes === 0 || minutes === undefined) {
-      pointsValue = null;
-      pointsLabel = 'Yet to play';
-    } else {
-      pointsValue = hasGwPoints ? effectiveGwPoints : seasonPoints;
-      pointsLabel = null;
-    }
-
-    const effectivePoints = isBench
-      ? pointsValue ?? 'Yet to play'
-      : (pick.multiplier > 0 ? pick.multiplier : 1) * (typeof pointsValue === 'number' ? pointsValue : 0);
+    const rawPoints = hasGwPoints ? effectiveGwPoints : null;
 
     const opponentShort = playerFixture
       ? teamMap[playerFixture.team_h === player.team ? playerFixture.team_a : playerFixture.team_h]?.short_name || 'OPP'
@@ -3364,9 +3345,19 @@ export default function SquadRoom() {
             <span className="text-purple-500">•</span>
             <span className="text-[#00ff87] font-bold">{xP.toFixed(1)} xP</span>
           </div>
-          {isLive && pointsValue !== null && pointsValue !== undefined && (
+          {isLive && rawPoints !== null && rawPoints !== undefined && (
             <div className="mt-1 inline-flex items-center justify-center w-full bg-[#00ff87] text-[#37003c] text-[9px] sm:text-[10px] font-black rounded-md py-0.5 px-1 shadow-[0_0_8px_rgba(0,255,135,0.4)]">
-              LIVE: {pointsValue} pts {fixtureMinutes > 0 ? `(${fixtureMinutes}')` : ''}
+              LIVE: {rawPoints} pts {fixtureMinutes > 0 ? `(${fixtureMinutes}')` : ''}
+            </div>
+          )}
+          {isFinished && rawPoints !== null && rawPoints !== undefined && (
+            <div className="mt-1 inline-flex items-center justify-center w-full bg-white/10 text-white text-[9px] sm:text-[10px] font-black rounded-md py-0.5 px-1 border border-white/20">
+              {rawPoints} pts
+            </div>
+          )}
+          {!isLive && !isFinished && rawPoints === null && (
+            <div className="mt-1 inline-flex items-center justify-center w-full bg-amber-500/20 text-amber-300 text-[9px] sm:text-[10px] font-bold rounded-md py-0.5 px-1">
+              Yet to play
             </div>
           )}
           {opponentShort && homeAway && (

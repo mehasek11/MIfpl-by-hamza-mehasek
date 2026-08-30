@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 1080" width="700" height="1080">
   <defs>
-    <pattern id="grass" width="700" height="15" patternUnits="userSpaceOnUse">
-      <rect width="700" height="15" fill="#1a6b35"/>
-      <rect width="700" height="15" fill="#15612d" opacity="0"/>
+    <pattern id="grass" width="700" height="18" patternUnits="userSpaceOnUse">
+      <rect width="700" height="9" fill="#1a6b35"/>
+      <rect y="9" width="700" height="9" fill="#155a2b"/>
     </pattern>
+    <linearGradient id="vignette" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#000" stop-opacity="0.15"/>
+      <stop offset="20%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="80%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0.18"/>
+    </linearGradient>
   </defs>
   <rect width="700" height="1080" fill="url(#grass)"/>
-  <rect width="700" height="1080" fill="#1a6b35" opacity="0.15"/>
+  <rect width="700" height="1080" fill="url(#vignette)"/>
 
-  <g fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.9">
+  <g fill="none" stroke="#ffffff" stroke-width="2.6" opacity="0.92">
     <rect x="0" y="0" width="700" height="1080" rx="1"/>
     <line x1="0" y1="540" x2="700" y2="540"/>
     <circle cx="350" cy="540" r="91.5"/>
