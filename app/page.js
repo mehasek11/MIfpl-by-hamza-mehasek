@@ -3312,7 +3312,7 @@ export default function SquadRoom() {
       <div
         key={pick.element}
         onClick={() => handleOpenPlayerModal(pick.element)}
-        className={`group relative rounded-xl p-1.5 sm:p-2 w-16 sm:w-20 md:w-24 text-center transition-all duration-300 cursor-pointer flex flex-col items-center ${
+        className={`group relative rounded-xl p-1.5 sm:p-2 md:p-3 w-16 sm:w-28 md:w-36 text-center transition-all duration-300 cursor-pointer flex flex-col items-center ${
           isBench
             ? 'bg-[#19001a]/80 border border-purple-800/60 opacity-90 hover:opacity-100 hover:z-50'
             : 'bg-[#19001a]/95 border border-purple-500/40 hover:border-[#00ff87]'
@@ -3329,19 +3329,19 @@ export default function SquadRoom() {
           </span>
         )}
 
-        <div className="h-10 sm:h-12 md:h-14 flex items-center justify-center my-0.5">
+        <div className="h-8 sm:h-16 md:h-16 flex items-center justify-center my-0.5">
           {shirtUrl ? (
-            <img src={shirtUrl} alt="kit" loading="lazy" decoding="async" className="h-8 sm:h-10 md:h-12 object-contain group-hover:drop-shadow-[0_4px_10px_rgba(0,255,135,0.3)] transition-transform duration-300" />
+            <img src={shirtUrl} alt="kit" loading="lazy" decoding="async" className="h-6 sm:h-14 md:h-14 object-contain group-hover:drop-shadow-[0_4px_10px_rgba(0,255,135,0.3)] transition-transform duration-300" />
           ) : (
-            <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full bg-purple-900"></div>
+            <div className="w-6 h-6 sm:w-12 sm:h-12 md:w-12 md:h-12 rounded-full bg-purple-900"></div>
           )}
         </div>
 
         <div className="bg-[#26002b] w-full rounded-lg p-1 mt-1 border border-purple-900 shadow-inner">
-          <div className="text-[10px] sm:text-[11px] font-extrabold text-white truncate px-0.5">
+          <div className="text-[10px] sm:text-sm md:text-sm font-extrabold text-white truncate px-0.5">
             {player.webName || player.name}
           </div>
-          <div className="text-[9px] sm:text-[10px] text-emerald-400 font-mono mt-0.5 flex justify-center gap-1 items-center flex-wrap">
+          <div className="text-[9px] sm:text-[11px] md:text-[11px] text-emerald-400 font-mono mt-0.5 flex justify-center gap-1 items-center flex-wrap">
             <span>£{player.now_cost}m</span>
             <span>•</span>
             {pointsLabel === 'LIVE' ? (
