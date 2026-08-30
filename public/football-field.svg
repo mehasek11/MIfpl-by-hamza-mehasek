@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 1080" width="700" height="1080">
   <defs>
-    <pattern id="grass" width="700" height="18" patternUnits="userSpaceOnUse">
-      <rect width="700" height="9" fill="#1a6b35"/>
-      <rect y="9" width="700" height="9" fill="#155a2b"/>
+    <pattern id="grass" width="700" height="20" patternUnits="userSpaceOnUse">
+      <rect width="700" height="10" fill="#1a6b35"/>
+      <rect y="10" width="700" height="10" fill="#15612d"/>
     </pattern>
-    <filter id="noise">
-      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch"/>
-      <feColorMatrix type="matrix" values="1 0 0 0 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 0.08 0"/>
+    <filter id="noise" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="matrix" values="1 0 0 0 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 0.06 0"/>
     </filter>
     <linearGradient id="vignette" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#000" stop-opacity="0.2"/>
-      <stop offset="25%" stop-color="#000" stop-opacity="0"/>
-      <stop offset="75%" stop-color="#000" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#000" stop-opacity="0.25"/>
+      <stop offset="0%" stop-color="#000" stop-opacity="0.25"/>
+      <stop offset="15%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="85%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0.3"/>
     </linearGradient>
   </defs>
   <rect width="700" height="1080" fill="url(#grass)"/>
   <rect width="700" height="1080" filter="url(#noise)"/>
   <rect width="700" height="1080" fill="url(#vignette)"/>
 
-  <g fill="none" stroke="#ffffff" stroke-width="2.6" opacity="0.92">
+  <g fill="none" stroke="#ffffff" stroke-width="2.8" opacity="0.93">
     <rect x="0" y="0" width="700" height="1080" rx="1"/>
     <line x1="0" y1="540" x2="700" y2="540"/>
     <circle cx="350" cy="540" r="91.5"/>
