@@ -76,6 +76,7 @@ export default function SquadRoom() {
   const gwChosenRef = useRef(false);
   const lastCurIdRef = useRef(null);
   const aiChatContainerRef = useRef(null);
+  const transferAutoPopulatedRef = useRef(false);
 
   useEffect(() => {
     if (!showManagerOverlay) return;
@@ -102,8 +103,11 @@ export default function SquadRoom() {
     }, 280);
   };
 
+  const closeRiskModal = () => setRiskModalPlayer(null);
+
    // Selected Fixture for Sofascore Style Summary Modal
   const [selectedFixture, setSelectedFixture] = useState(null);
+  const [riskModalPlayer, setRiskModalPlayer] = useState(null);
 
   // Selected League for Standings & Ranks View
   const [selectedLeague, setSelectedLeague] = useState(null);
@@ -127,6 +131,8 @@ export default function SquadRoom() {
   const [transferInsight, setTransferInsight] = useState('');
   const [compareASearch, setCompareASearch] = useState('');
   const [compareBSearch, setCompareBSearch] = useState('');
+  const [compareAUpcoming, setCompareAUpcoming] = useState([]);
+  const [compareBUpcoming, setCompareBUpcoming] = useState([]);
 
   useEffect(() => {
     if (aiChatContainerRef.current) {
@@ -165,12 +171,17 @@ export default function SquadRoom() {
   }, [captainLog]);
 
   useEffect(() => {
-    if (!transferOutId && managerPicks.length && playerMap[managerPicks[0]?.element]) {
-      setTransferOutId(managerPicks[0].element);
-    }
-    if (!transferInId && Object.keys(playerMap).length) {
-      const nextTarget = Object.values(playerMap).find((player) => !managerPicks.some((pick) => pick.element === player.id));
-      if (nextTarget) setTransferInId(nextTarget.id);
+    if (!transferAutoPopulatedRef.current) {
+      if (!transferOutId && managerPicks.length && playerMap[managerPicks[0]?.element]) {
+        setTransferOutId(managerPicks[0].element);
+      }
+      if (!transferInId && Object.keys(playerMap).length) {
+        const nextTarget = Object.values(playerMap).find((player) => !managerPicks.some((pick) => pick.element === player.id));
+        if (nextTarget) setTransferInId(nextTarget.id);
+      }
+      if (managerPicks.length && Object.keys(playerMap).length) {
+        transferAutoPopulatedRef.current = true;
+      }
     }
   }, [managerPicks, playerMap, transferOutId, transferInId]);
 
@@ -189,7 +200,7 @@ export default function SquadRoom() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            prompt: `Compare these two FPL players and give a detailed verdict with reasoning: ${playerA.webName} vs ${playerB.webName}. Consider price, form, fixtures, and value.`,
+            prompt: `Compare ${playerA.webName} vs ${playerB.webName} in 2-3 short sentences. Focus on the key difference and pick a winner. Do not ask any questions or end with a follow-up question. Just give a clear verdict and brief explanation.`,
             context: { playerA, playerB }
           })
         });
@@ -214,6 +225,36 @@ export default function SquadRoom() {
       }
     }
     fetchComparisonInsight();
+    return () => { isMounted = false; };
+  }, [compareAId, compareBId, playerMap]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchCompareUpcoming() {
+      if (!compareAId || !playerMap[compareAId]) {
+        if (isMounted) setCompareAUpcoming([]);
+      } else {
+        try {
+          const res = await fetch(`/api/fpl-proxy?endpoint=player&playerId=${compareAId}`);
+          const data = await res.json();
+          if (isMounted) setCompareAUpcoming(data.fixtures || []);
+        } catch {
+          if (isMounted) setCompareAUpcoming([]);
+        }
+      }
+      if (!compareBId || !playerMap[compareBId]) {
+        if (isMounted) setCompareBUpcoming([]);
+      } else {
+        try {
+          const res = await fetch(`/api/fpl-proxy?endpoint=player&playerId=${compareBId}`);
+          const data = await res.json();
+          if (isMounted) setCompareBUpcoming(data.fixtures || []);
+        } catch {
+          if (isMounted) setCompareBUpcoming([]);
+        }
+      }
+    }
+    fetchCompareUpcoming();
     return () => { isMounted = false; };
   }, [compareAId, compareBId, playerMap]);
 
@@ -373,6 +414,8 @@ export default function SquadRoom() {
       setLastUpdated(new Date().toISOString());
     } catch (err) {
       console.error('Error fetching manager info', err);
+      setManagerPicks([]);
+      setPicksLocked(true);
     } finally {
       if (!silent) setManagerLoading(false);
     }
@@ -1663,7 +1706,7 @@ export default function SquadRoom() {
                 })()}
                  <span className="rounded-full border border-[#00ff87]/40 bg-[#00ff87]/10 px-2.5 py-1.5 text-[#00ff87]">FPL snapshot • {formatLastUpdated(lastUpdated)}</span>
                  <span className="rounded-full border border-[#00ff87]/40 bg-[#00ff87]/10 px-2.5 py-1.5 text-[#00ff87]">Best captain: {captaincySuggestion?.player?.webName ? <button type="button" onClick={() => handleOpenPlayerModal(captaincySuggestion.player.id)} className="font-bold hover:text-white transition-colors">{captaincySuggestion.player.webName}</button> : '—'}</span>
-                 <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-1.5 text-amber-300">Risk watch: {fixturePressure[0]?.player?.webName ? <button type="button" onClick={() => handleOpenPlayerModal(fixturePressure[0].player.id)} className="font-bold hover:text-white transition-colors">{fixturePressure[0].player.webName}</button> : '—'}</span>
+                  <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-1.5 text-amber-300">Risk watch: {fixturePressure[0]?.player?.webName ? <button type="button" onClick={() => setRiskModalPlayer(fixturePressure[0])} className="font-bold hover:text-white transition-colors">{fixturePressure[0].player.webName}</button> : '—'}</span>
               </div>
             </div>
           </div>
@@ -1805,11 +1848,20 @@ export default function SquadRoom() {
         {/* TAB 1: PITCH VIEW */}
         {activeTab === 'squad' && (
           <div className="space-y-6">
-            {managerPicks.length === 0 ? (
+            {managerPicks.length === 0 && !managerLoading ? (
+              <div className="bg-[#26002b] border border-purple-800 rounded-xl p-12 text-center text-purple-300 text-xs uppercase tracking-widest space-y-4">
+                <p>{picksLocked ? `GW ${selectedGw} lineup hasn't been published yet - it appears once the gameweek goes live` : 'Squad lineup is unavailable right now.'}</p>
+                <button
+                  type="button"
+                  onClick={() => handleFetchManager(managerId, viewedTeamName)}
+                  className="bg-[#00ff87] text-[#37003c] font-black uppercase tracking-widest text-xs px-4 py-2 rounded-full hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/25"
+                >
+                  Retry load lineup
+                </button>
+              </div>
+            ) : managerPicks.length === 0 && managerLoading ? (
               <div className="bg-[#26002b] border border-purple-800 rounded-xl p-12 text-center text-purple-300 text-xs uppercase tracking-widest">
-                {picksLocked
-                  ? `GW ${selectedGw} lineup hasn't been published yet - it appears once the gameweek goes live`
-                  : 'Loading squad lineup and formation...'}
+                Loading squad lineup and formation...
               </div>
             ) : (
                 <div className="rounded-3xl p-4 sm:p-5 shadow-2xl relative border border-emerald-400/50 animate-glow-pulse" style={{ background: 'linear-gradient(135deg, #1a0022 0%, #2e0040 50%, #1a0022 100)' }}>
@@ -1819,7 +1871,7 @@ export default function SquadRoom() {
                   </div>
 
                         <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/5', backgroundColor: '#00a000', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
-                    <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
+                           <img src="/football-field.svg?v=2" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
                     <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2">
                       <div className="flex justify-center gap-1 sm:gap-2">
@@ -2001,12 +2053,12 @@ export default function SquadRoom() {
                             })()}
                           </div>
                         )}
-                        {transferOutId && !tOutSearch.trim() && (
-                          <div className="mt-2 flex items-center justify-between rounded-lg border border-[#00ff87]/30 bg-[#00ff87]/10 px-3 py-1.5">
-                            <span className="text-sm font-bold text-white">{playerMap[transferOutId]?.webName}</span>
-                            <button type="button" onClick={() => setTransferOutId('')} className="text-[10px] font-bold uppercase text-rose-300 hover:text-rose-200">Clear</button>
-                          </div>
-                        )}
+                         {transferOutId && (
+                           <div className="mt-2 flex items-center justify-between rounded-lg border border-[#00ff87]/30 bg-[#00ff87]/10 px-3 py-1.5">
+                             <span className="text-sm font-bold text-white">{playerMap[transferOutId]?.webName}</span>
+                              <button type="button" onClick={() => { setTransferOutId(''); setTransferInId(''); setTOutSearch(''); setTInSearch(''); }} className="text-[10px] font-bold uppercase text-rose-300 hover:text-rose-200">Clear</button>
+                           </div>
+                         )}
                       </div>
                       <div>
                         <label className="text-[10px] uppercase tracking-[0.18em] text-purple-400 block mb-2">Transfer in</label>
@@ -2036,12 +2088,12 @@ export default function SquadRoom() {
                             })()}
                           </div>
                         )}
-                        {transferInId && !tInSearch.trim() && (
-                          <div className="mt-2 flex items-center justify-between rounded-lg border border-[#00ff87]/30 bg-[#00ff87]/10 px-3 py-1.5">
-                            <span className="text-sm font-bold text-white">{playerMap[transferInId]?.webName}</span>
-                            <button type="button" onClick={() => setTransferInId('')} className="text-[10px] font-bold uppercase text-rose-300 hover:text-rose-200">Clear</button>
-                          </div>
-                        )}
+                         {transferInId && (
+                           <div className="mt-2 flex items-center justify-between rounded-lg border border-[#00ff87]/30 bg-[#00ff87]/10 px-3 py-1.5">
+                             <span className="text-sm font-bold text-white">{playerMap[transferInId]?.webName}</span>
+                              <button type="button" onClick={() => { setTransferOutId(''); setTransferInId(''); setTOutSearch(''); setTInSearch(''); }} className="text-[10px] font-bold uppercase text-rose-300 hover:text-rose-200">Clear</button>
+                           </div>
+                         )}
                       </div>
                     </div>
                     {transferOutId && transferInId && (
@@ -2050,14 +2102,14 @@ export default function SquadRoom() {
                           <p className="text-[10px] uppercase tracking-[0.2em] text-[#00ff87]">AI transfer rating</p>
                           {transferRating ? <p className="text-2xl font-black text-white">{transferRating}/100</p> : <p className="text-xs text-purple-200">Rate the move to see the factor breakdown.</p>}
                         </div>
-                        <div className="flex gap-2">
-                          <button type="button" onClick={handleRateTransfer} className="bg-[#00ff87] text-[#37003c] font-bold uppercase text-[10px] px-4 py-2 rounded-full">Rate transfer</button>
-                          {transferRating && (
-                            <button type="button" onClick={handleSaveTransfer} className={`${savedTransferIds.has(`${transferOutId}-${transferInId}`) ? 'bg-emerald-600 cursor-default' : 'bg-purple-600 hover:bg-purple-500'} text-white font-bold uppercase text-[10px] px-4 py-2 rounded-full transition-colors`}>
-                              {savedTransferIds.has(`${transferOutId}-${transferInId}`) ? 'Transfer saved' : 'Save transfer'}
-                            </button>
-                          )}
-                        </div>
+                         <div className="flex gap-2">
+                           <button type="button" onClick={handleRateTransfer} className="bg-[#00ff87] text-[#37003c] font-bold uppercase text-[10px] px-4 py-2 rounded-full">Rate transfer</button>
+                           {transferRating && (
+                             <button type="button" onClick={handleSaveTransfer} className={`${savedTransferIds.has(`${transferOutId}-${transferInId}`) ? 'bg-emerald-600 cursor-default' : 'bg-purple-600 hover:bg-purple-500'} text-white font-bold uppercase text-[10px] px-4 py-2 rounded-full transition-colors`}>
+                               {savedTransferIds.has(`${transferOutId}-${transferInId}`) ? 'Transfer saved' : 'Save transfer'}
+                             </button>
+                           )}
+                         </div>
                       </div>
                     )}
                     {transferInsight && transferOutId && transferInId && (
@@ -2166,11 +2218,11 @@ export default function SquadRoom() {
               </div>
             </div>
 
-            {playerMap[compareAId] && playerMap[compareBId] && (() => {
-const playerA = playerMap[compareAId];
-              const playerB = playerMap[compareBId];
-              const nextThreeA = getExpectedPointsNextThree(playerA, [], fixtures.filter((fix) => fix.team_h === playerA.team || fix.team_a === playerA.team).slice(0, 3));
-              const nextThreeB = getExpectedPointsNextThree(playerB, [], fixtures.filter((fix) => fix.team_h === playerB.team || fix.team_a === playerB.team).slice(0, 3));
+             {playerMap[compareAId] && playerMap[compareBId] && (() => {
+ const playerA = playerMap[compareAId];
+               const playerB = playerMap[compareBId];
+               const nextThreeA = getExpectedPointsNextThree(playerA, [], compareAUpcoming.slice(0, 3));
+               const nextThreeB = getExpectedPointsNextThree(playerB, [], compareBUpcoming.slice(0, 3));
               const ownedA = ownedPlayerIds.has(playerA.id);
               const ownedB = ownedPlayerIds.has(playerB.id);
 
@@ -2281,8 +2333,12 @@ const playerA = playerMap[compareAId];
                       <thead>
                         <tr className="bg-[#19001a]">
                           <th className="text-left text-[10px] uppercase tracking-[0.18em] text-purple-400 px-4 py-3 font-bold w-1/3">Stat</th>
-                          <th className="text-center text-[10px] uppercase tracking-[0.18em] text-[#00ff87] px-4 py-3 font-bold">{playerA.webName}</th>
-                          <th className="text-center text-[10px] uppercase tracking-[0.18em] text-[#00ff87] px-4 py-3 font-bold">{playerB.webName}</th>
+                          <th className="text-center text-[10px] uppercase tracking-[0.18em] text-[#00ff87] px-4 py-3 font-bold">
+                            <span className="truncate block max-w-[120px] sm:max-w-none mx-auto">{playerA.webName}</span>
+                          </th>
+                          <th className="text-center text-[10px] uppercase tracking-[0.18em] text-[#00ff87] px-4 py-3 font-bold">
+                            <span className="truncate block max-w-[120px] sm:max-w-none mx-auto">{playerB.webName}</span>
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -2292,7 +2348,7 @@ const playerA = playerMap[compareAId];
                             <button
                               type="button"
                               onClick={() => handleOpenPlayerModal(playerA.id)}
-                              className="font-bold text-white hover:text-[#00ff87] transition-colors"
+                              className="font-bold text-white hover:text-[#00ff87] transition-colors truncate block max-w-[120px] sm:max-w-none mx-auto"
                             >
                               {playerA.webName}
                             </button>
@@ -2302,7 +2358,7 @@ const playerA = playerMap[compareAId];
                             <button
                               type="button"
                               onClick={() => handleOpenPlayerModal(playerB.id)}
-                              className="font-bold text-white hover:text-[#00ff87] transition-colors"
+                              className="font-bold text-white hover:text-[#00ff87] transition-colors truncate block max-w-[120px] sm:max-w-none mx-auto"
                             >
                               {playerB.webName}
                             </button>
@@ -2330,15 +2386,15 @@ const playerA = playerMap[compareAId];
                     </table>
                   </div>
 
-                  {compareInsight && (
-                    <div className="bg-gradient-to-r from-[#19001a] via-[#1d0021] to-[#19001a] border border-[#00ff87]/30 rounded-xl p-5">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="bg-[#00ff87] text-[#37003c] text-[9px] font-black px-2 py-0.5 rounded uppercase">AI</span>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#00ff87]">Comparison Verdict</p>
-                      </div>
-                      <p className="text-sm text-purple-100 leading-relaxed">{compareInsight}</p>
-                    </div>
-                  )}
+                   {compareInsight && (
+                     <div className="bg-gradient-to-r from-[#19001a] via-[#1d0021] to-[#19001a] border border-[#00ff87]/30 rounded-xl p-5">
+                       <div className="flex items-center gap-2 mb-3">
+                         <span className="bg-[#00ff87] text-[#37003c] text-[9px] font-black px-2 py-0.5 rounded uppercase">AI</span>
+                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#00ff87]">Comparison Verdict</p>
+                       </div>
+                       <p className="text-sm text-purple-100 leading-relaxed">{compareInsight.length > 600 ? compareInsight.slice(0, 600) + '...' : compareInsight}</p>
+                     </div>
+                   )}
                 </div>
               );
             })()}
@@ -2971,11 +3027,76 @@ const playerA = playerMap[compareAId];
                 </div>
               )}
             </div>
-          </div>
-        )}
-        </div>
+         </div>
+       )}
+     </div>
+ 
+         {/* RISK WATCH MODAL */}
+         {riskModalPlayer && (() => {
+           const player = riskModalPlayer.player;
+           const fixture = fixtures.find(f => f.team_h === player.team || f.team_a === player.team);
+           const difficulty = riskModalPlayer.difficulty;
+           const riskScore = riskModalPlayer.risk;
+           const chance = player.chance_of_playing_next_round;
+           const reasons = [];
+           if (difficulty >= 4) reasons.push('Tough fixture difficulty');
+           if (difficulty === 3) reasons.push('Average fixture difficulty');
+           if (chance !== null && chance !== undefined && Number(chance) < 75) reasons.push('Low chance of playing');
+           if (player.status === 'i') reasons.push('Currently injured');
+           if (player.status === 'd') reasons.push('Doubtful for next round');
+           if (player.status === 'u') reasons.push('Unavailable');
+           if (Number(player.news || '').length > 0) reasons.push(player.news);
+           if (!fixture) reasons.push('No upcoming fixture found');
 
-        {/* FLOATING AI ASSISTANT BUTTON & DRAWER */}
+           return (
+             <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center z-[70] p-4" onClick={closeRiskModal}>
+               <div className="bg-[#26002b] border border-amber-500/60 rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-white space-y-5 max-h-[90vh] overflow-y-auto scrollbar-thin" onClick={(e) => e.stopPropagation()}>
+                 <div className="flex justify-between items-center border-b border-purple-900 pb-4">
+                   <div>
+                     <span className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Risk watch</span>
+                     <h3 className="text-lg font-black text-white mt-1">{player.webName || player.name}</h3>
+                   </div>
+                   <button onClick={closeRiskModal} className="text-purple-400 hover:text-white font-bold text-sm bg-purple-900/50 w-8 h-8 rounded-full flex items-center justify-center">✕</button>
+                 </div>
+
+                 <div className="grid grid-cols-2 gap-3">
+                   <div className="bg-[#19001a] border border-purple-900 p-3 rounded-lg">
+                     <p className="text-[10px] text-purple-400 uppercase">Risk score</p>
+                     <p className="text-lg font-black text-amber-300 mt-1">{riskScore}</p>
+                   </div>
+                   <div className="bg-[#19001a] border border-purple-900 p-3 rounded-lg">
+                     <p className="text-[10px] text-purple-400 uppercase">Fixture diff</p>
+                     <p className="text-lg font-black text-white mt-1">{difficulty}</p>
+                   </div>
+                   <div className="bg-[#19001a] border border-purple-900 p-3 rounded-lg">
+                     <p className="text-[10px] text-purple-400 uppercase">Availability</p>
+                     <p className="text-lg font-black text-white mt-1">{chance !== null && chance !== undefined ? `${chance}%` : '—'}</p>
+                   </div>
+                   <div className="bg-[#19001a] border border-purple-900 p-3 rounded-lg">
+                     <p className="text-[10px] text-purple-400 uppercase">Team</p>
+                     <p className="text-lg font-black text-white mt-1">{teamMap[player.team]?.short_name || '—'}</p>
+                   </div>
+                 </div>
+
+                 <div className="bg-[#19001a] border border-amber-500/40 rounded-xl p-4">
+                   <p className="text-[10px] uppercase tracking-[0.18em] text-amber-300 font-bold mb-2">Why this pick is flagged</p>
+                   <ul className="space-y-2 text-xs text-purple-100">
+                     {reasons.length ? reasons.map((reason, idx) => (
+                       <li key={idx} className="flex items-start gap-2">
+                         <span className="text-amber-400 mt-0.5">•</span>
+                         <span>{reason}</span>
+                       </li>
+                     )) : (
+                       <li className="text-purple-300">No obvious risk signals right now.</li>
+                     )}
+                   </ul>
+                 </div>
+               </div>
+             </div>
+           );
+         })()}
+ 
+         {/* FLOATING AI ASSISTANT BUTTON & DRAWER */}
         <div className="fixed bottom-4 right-4 z-[70] sm:bottom-6 sm:right-6">
           {!isAiOpen ? (
             <button
@@ -3106,7 +3227,7 @@ const playerA = playerMap[compareAId];
                        </div>
 
                    <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/5', backgroundColor: '#00a000', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
-                          <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
+                    <img src="/football-field.svg?v=2" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
                            <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2">
                              <div className="flex justify-center gap-1 sm:gap-2">
