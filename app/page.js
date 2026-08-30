@@ -3315,6 +3315,17 @@ export default function SquadRoom() {
       ? pointsValue ?? 'Yet to play'
       : (pick.multiplier > 0 ? pick.multiplier : 1) * (typeof pointsValue === 'number' ? pointsValue : 0);
 
+    const opponentShort = playerFixture
+      ? teamMap[playerFixture.team_h === player.team ? playerFixture.team_a : playerFixture.team_h]?.short_name || 'OPP'
+      : null;
+    const homeAway = playerFixture
+      ? playerFixture.team_h === player.team ? 'H' : 'A'
+      : null;
+    const difficulty = playerFixture
+      ? Number(playerFixture.team_h === player.team ? playerFixture.team_h_difficulty : playerFixture.team_a_difficulty || 3)
+      : 3;
+    const diffColor = difficulty <= 2 ? 'bg-emerald-600/90 text-white' : difficulty === 3 ? 'bg-amber-600/90 text-white' : 'bg-red-600/90 text-white';
+
     return (
       <div
         key={pick.element}
@@ -3348,23 +3359,21 @@ export default function SquadRoom() {
           <div className="text-[10px] sm:text-sm md:text-sm font-extrabold text-white truncate px-0.5">
             {player.webName || player.name}
           </div>
-          <div className="text-[9px] sm:text-[11px] md:text-[11px] text-emerald-400 font-mono mt-0.5 flex justify-center gap-1 items-center flex-wrap">
-            <span>£{player.now_cost}m</span>
-            <span>•</span>
-            {pointsLabel === 'LIVE' ? (
-              <span className="inline-flex items-center gap-1">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00ff87] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#00ff87]"></span>
-                </span>
-                <span className="text-[8px] font-bold">LIVE</span>
-              </span>
-            ) : pointsLabel === 'Yet to play' ? (
-              <span className="text-amber-300 text-[8px]">Yet to play</span>
-            ) : (
-              <span>{effectivePoints}</span>
-            )}
+          <div className="text-[9px] sm:text-[11px] md:text-[11px] text-purple-200 font-mono mt-0.5 flex justify-center gap-1 items-center flex-wrap">
+            <span>£{(Number(player.now_cost) / 10).toFixed(1)}m</span>
+            <span className="text-purple-500">•</span>
+            <span className="text-[#00ff87] font-bold">{xP.toFixed(1)} xP</span>
           </div>
+          {isLive && pointsValue !== null && pointsValue !== undefined && (
+            <div className="mt-1 inline-flex items-center justify-center w-full bg-[#00ff87] text-[#37003c] text-[9px] sm:text-[10px] font-black rounded-md py-0.5 px-1 shadow-[0_0_8px_rgba(0,255,135,0.4)]">
+              LIVE: {pointsValue} pts {fixtureMinutes > 0 ? `(${fixtureMinutes}')` : ''}
+            </div>
+          )}
+          {opponentShort && homeAway && (
+            <div className={`mt-1 inline-flex items-center justify-center w-full ${diffColor} text-[8px] sm:text-[9px] font-bold rounded py-0.5 px-1`}>
+              {opponentShort} ({homeAway})
+            </div>
+          )}
         </div>
       </div>
     );

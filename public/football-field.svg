@@ -10,8 +10,8 @@
   <rect width="700" height="1080" fill="#1a6b35" opacity="0.15"/>
 
   <g fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.9">
-    <rect x="30" y="15" width="640" height="1050" rx="1"/>
-    <line x1="30" y1="540" x2="670" y2="540"/>
+    <rect x="0" y="0" width="700" height="1080" rx="1"/>
+    <line x1="0" y1="540" x2="700" y2="540"/>
     <circle cx="350" cy="540" r="91.5"/>
     <circle cx="350" cy="540" r="3" fill="#ffffff" stroke="none"/>
   </g>
