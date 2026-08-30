@@ -1845,65 +1845,65 @@ export default function SquadRoom() {
           </>
         )}
 
-        {/* TAB 1: PITCH VIEW */}
-        {activeTab === 'squad' && (
-          <div className="space-y-6">
-            {managerPicks.length === 0 && !managerLoading ? (
-              <div className="bg-[#26002b] border border-purple-800 rounded-xl p-12 text-center text-purple-300 text-xs uppercase tracking-widest space-y-4">
-                <p>{picksLocked ? `GW ${selectedGw} lineup hasn't been published yet - it appears once the gameweek goes live` : 'Squad lineup is unavailable right now.'}</p>
-                <button
-                  type="button"
-                  onClick={() => handleFetchManager(managerId, viewedTeamName)}
-                  className="bg-[#00ff87] text-[#37003c] font-black uppercase tracking-widest text-xs px-4 py-2 rounded-full hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/25"
-                >
-                  Retry load lineup
-                </button>
-              </div>
-            ) : managerPicks.length === 0 && managerLoading ? (
-              <div className="bg-[#26002b] border border-purple-800 rounded-xl p-12 text-center text-purple-300 text-xs uppercase tracking-widest">
-                Loading squad lineup and formation...
-              </div>
-            ) : (
-                <div className="rounded-3xl p-2 sm:p-4 shadow-2xl relative border border-emerald-400/50 animate-glow-pulse" style={{ background: 'linear-gradient(135deg, #1a0022 0%, #2e0040 50%, #1a0022 100)' }}>
-                  <div className="relative z-10 flex justify-between items-center mb-2 sm:mb-3 text-[10px] uppercase tracking-[0.2em] text-emerald-100/90">
-                    <span className="font-bold">Formation {startingDEF.length}-{startingMID.length}-{startingFWD.length}</span>
-                    <span className="text-[#00ff87] font-bold">Manager plan</span>
-                  </div>
-
-                         <div className="relative w-full mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/3', backgroundColor: '#00a000', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35)' }}>
-                            <img src="/football-field.svg?v=2" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
-
-                      <div className="absolute inset-0 flex flex-col justify-between py-2 px-1">
-                        <div className="flex justify-center gap-1.5 sm:gap-2">
-                          {startingGK.map(pick => renderPlayerCard(pick))}
-                        </div>
-                        <div className="flex justify-around gap-1 sm:gap-2">
-                          {startingDEF.map(pick => renderPlayerCard(pick))}
-                        </div>
-                        <div className="flex justify-around gap-1 sm:gap-2">
-                          {startingMID.map(pick => renderPlayerCard(pick))}
-                        </div>
-                        <div className="flex justify-around gap-1 sm:gap-2">
-                          {startingFWD.map(pick => renderPlayerCard(pick))}
-                        </div>
-                      </div>
-                    </div>
-
-                 <div className="mt-2 sm:mt-4 pt-2 sm:pt-4 pb-3 sm:pb-5 border-t border-white/10 relative z-10">
-                  <div className="flex items-center justify-center gap-2 mb-2 sm:mb-3">
-                    <div className="h-px w-4 bg-gradient-to-r from-transparent to-purple-400/60" />
-                    <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-purple-200">Substitutes Bench</p>
-                    <div className="h-px w-4 bg-gradient-to-l from-transparent to-purple-400/60" />
-                  </div>
-                   <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
-                     {substitutes.map(pick => renderPlayerCard(pick, true))}
+         {/* TAB 1: PITCH VIEW */}
+         {activeTab === 'squad' && (
+           <div className="flex-1 flex flex-col min-h-0">
+             {managerPicks.length === 0 && !managerLoading ? (
+               <div className="bg-[#26002b] border border-purple-800 rounded-xl p-12 text-center text-purple-300 text-xs uppercase tracking-widest space-y-4">
+                 <p>{picksLocked ? `GW ${selectedGw} lineup hasn't been published yet - it appears once the gameweek goes live` : 'Squad lineup is unavailable right now.'}</p>
+                 <button
+                   type="button"
+                   onClick={() => handleFetchManager(managerId, viewedTeamName)}
+                   className="bg-[#00ff87] text-[#37003c] font-black uppercase tracking-widest text-xs px-4 py-2 rounded-full hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/25"
+                 >
+                   Retry load lineup
+                 </button>
+               </div>
+             ) : managerPicks.length === 0 && managerLoading ? (
+               <div className="bg-[#26002b] border border-purple-800 rounded-xl p-12 text-center text-purple-300 text-xs uppercase tracking-widest">
+                 Loading squad lineup and formation...
+               </div>
+             ) : (
+                 <div className="flex-1 flex flex-col rounded-3xl p-2 sm:p-4 shadow-2xl relative border border-emerald-400/50 animate-glow-pulp" style={{ background: 'linear-gradient(135deg, #1a0022 0%, #2e0040 50%, #1a0022 100)' }}>
+                   <div className="relative z-10 flex justify-between items-center mb-2 sm:mb-3 text-[10px] uppercase tracking-[0.2em] text-emerald-100/90 shrink-0">
+                     <span className="font-bold">Formation {startingDEF.length}-{startingMID.length}-{startingFWD.length}</span>
+                     <span className="text-[#00ff87] font-bold">Manager plan</span>
                    </div>
-                </div>
 
-              </div>
-            )}
-          </div>
-        )}
+                          <div className="relative flex-1 min-h-0 mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '3/4', backgroundColor: '#00a000', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35)' }}>
+                             <img src="/football-field.svg?v=2" alt="Football pitch" className="absolute inset-0 w-full h-full object-contain pointer-events-none" draggable={false} />
+
+                       <div className="absolute inset-0 flex flex-col justify-between py-2 px-1">
+                         <div className="flex justify-center gap-1.5 sm:gap-2">
+                           {startingGK.map(pick => renderPlayerCard(pick))}
+                         </div>
+                         <div className="flex justify-around gap-1 sm:gap-2">
+                           {startingDEF.map(pick => renderPlayerCard(pick))}
+                         </div>
+                         <div className="flex justify-around gap-1 sm:gap-2">
+                           {startingMID.map(pick => renderPlayerCard(pick))}
+                         </div>
+                         <div className="flex justify-around gap-1 sm:gap-2">
+                           {startingFWD.map(pick => renderPlayerCard(pick))}
+                         </div>
+                       </div>
+                     </div>
+
+                  <div className="mt-2 sm:mt-4 pt-2 sm:pt-4 pb-3 sm:pb-5 border-t border-white/10 relative z-10 shrink-0">
+                   <div className="flex items-center justify-center gap-2 mb-2 sm:mb-3">
+                     <div className="h-px w-4 bg-gradient-to-r from-transparent to-purple-400/60" />
+                     <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-purple-200">Substitutes Bench</p>
+                     <div className="h-px w-4 bg-gradient-to-l from-transparent to-purple-400/60" />
+                   </div>
+                    <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+                      {substitutes.map(pick => renderPlayerCard(pick, true))}
+                    </div>
+                 </div>
+
+               </div>
+             )}
+           </div>
+         )}
 
         {/* TAB 2: TRANSFERS */}
         {activeTab === 'transfers' && (
@@ -3226,24 +3226,24 @@ export default function SquadRoom() {
                           <span className="text-[#00ff87] font-bold">Manager lineup</span>
                         </div>
 
-                     <div className="relative w-full mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/3', backgroundColor: '#00a000', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35)' }}>
-                      <img src="/football-field.svg?v=2" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
+                      <div className="relative w-full mx-auto rounded-lg overflow-hidden border border-white/50 flex-1 min-h-0" style={{ aspectRatio: '3/4', backgroundColor: '#00a000', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35)' }}>
+                       <img src="/football-field.svg?v=2" alt="Football pitch" className="absolute inset-0 w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                             <div className="absolute inset-0 flex flex-col justify-between py-2 px-1">
-                               <div className="flex justify-center gap-1.5 sm:gap-2">
-                                 {overlayGK.map(pick => renderPlayerCard(pick))}
-                               </div>
-                               <div className="flex justify-around gap-1 sm:gap-2">
-                                 {overlayDEF.map(pick => renderPlayerCard(pick))}
-                               </div>
-                               <div className="flex justify-around gap-1 sm:gap-2">
-                                 {overlayMID.map(pick => renderPlayerCard(pick))}
-                               </div>
-                               <div className="flex justify-around gap-1 sm:gap-2">
-                                 {overlayFWD.map(pick => renderPlayerCard(pick))}
-                               </div>
-                             </div>
-                          </div>
+                              <div className="absolute inset-0 flex flex-col justify-between py-2 px-1">
+                                <div className="flex justify-center gap-1.5 sm:gap-2">
+                                  {overlayGK.map(pick => renderPlayerCard(pick))}
+                                </div>
+                                <div className="flex justify-around gap-1 sm:gap-2">
+                                  {overlayDEF.map(pick => renderPlayerCard(pick))}
+                                </div>
+                                <div className="flex justify-around gap-1 sm:gap-2">
+                                  {overlayMID.map(pick => renderPlayerCard(pick))}
+                                </div>
+                                <div className="flex justify-around gap-1 sm:gap-2">
+                                  {overlayFWD.map(pick => renderPlayerCard(pick))}
+                                </div>
+                              </div>
+                           </div>
 
                  <div className="mt-2 sm:mt-4 pt-2 sm:pt-4 pb-3 sm:pb-5 border-t border-white/10 relative z-10">
                          <div className="flex items-center justify-center gap-2 mb-2 sm:mb-3">
