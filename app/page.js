@@ -1873,17 +1873,17 @@ export default function SquadRoom() {
                         <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '3/4', backgroundColor: '#00a000', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35), 0 0 15px rgba(0,0,0,0.35)' }}>
                            <img src="/football-field.svg?v=2" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                     <div className="absolute inset-0 flex flex-col justify-between py-0.5 sm:py-1 px-0.5 sm:px-1">
-                       <div className="flex justify-center gap-0.5 sm:gap-1">
+                     <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2">
+                       <div className="flex justify-center gap-1.5 sm:gap-3">
                          {startingGK.map(pick => renderPlayerCard(pick))}
                        </div>
-                       <div className="flex justify-around gap-0.5 sm:gap-1">
+                       <div className="flex justify-around gap-1 sm:gap-3">
                          {startingDEF.map(pick => renderPlayerCard(pick))}
                        </div>
-                       <div className="flex justify-around gap-0.5 sm:gap-1">
+                       <div className="flex justify-around gap-1 sm:gap-3">
                          {startingMID.map(pick => renderPlayerCard(pick))}
                        </div>
-                       <div className="flex justify-around gap-0.5 sm:gap-1">
+                       <div className="flex justify-around gap-1 sm:gap-3">
                          {startingFWD.map(pick => renderPlayerCard(pick))}
                        </div>
                      </div>
@@ -1895,7 +1895,7 @@ export default function SquadRoom() {
                     <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-purple-200">Substitutes Bench</p>
                     <div className="h-px w-6 bg-gradient-to-l from-transparent to-purple-400/60" />
                   </div>
-                   <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
+                   <div className="grid grid-cols-4 gap-1.5 sm:gap-2 sm:flex sm:flex-wrap sm:justify-center">
                      {substitutes.map(pick => renderPlayerCard(pick, true))}
                    </div>
                 </div>
@@ -3229,17 +3229,17 @@ export default function SquadRoom() {
                     <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '3/4', backgroundColor: '#00a000', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35), 0 0 15px rgba(0,0,0,0.35)' }}>
                      <img src="/football-field.svg?v=2" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                            <div className="absolute inset-0 flex flex-col justify-between py-0.5 sm:py-1 px-0.5 sm:px-1">
-                              <div className="flex justify-center gap-0.5 sm:gap-1">
+                            <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2">
+                              <div className="flex justify-center gap-1.5 sm:gap-3">
                                 {overlayGK.map(pick => renderPlayerCard(pick))}
                               </div>
-                              <div className="flex justify-around gap-0.5 sm:gap-1">
+                              <div className="flex justify-around gap-1 sm:gap-3">
                                 {overlayDEF.map(pick => renderPlayerCard(pick))}
                               </div>
-                              <div className="flex justify-around gap-0.5 sm:gap-1">
+                              <div className="flex justify-around gap-1 sm:gap-3">
                                 {overlayMID.map(pick => renderPlayerCard(pick))}
                               </div>
-                              <div className="flex justify-around gap-0.5 sm:gap-1">
+                              <div className="flex justify-around gap-1 sm:gap-3">
                                 {overlayFWD.map(pick => renderPlayerCard(pick))}
                               </div>
                             </div>
@@ -3251,7 +3251,7 @@ export default function SquadRoom() {
                            <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-purple-200">Substitutes Bench</p>
                            <div className="h-px w-6 bg-gradient-to-l from-transparent to-purple-400/60" />
                          </div>
-                           <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
+                           <div className="grid grid-cols-4 gap-1.5 sm:gap-2 sm:flex sm:flex-wrap sm:justify-center">
                              {overlaySubstitutes.map(pick => renderPlayerCard(pick, true))}
                            </div>
                         </div>
@@ -3312,11 +3312,11 @@ export default function SquadRoom() {
       <div
         key={pick.element}
         onClick={() => handleOpenPlayerModal(pick.element)}
-        className={`group relative rounded-xl p-1 sm:p-2 w-20 sm:w-24 md:w-28 text-center transition-all duration-300 cursor-pointer flex flex-col items-center ${
+        className={`group relative rounded-xl p-2 sm:p-2 w-24 sm:w-28 md:w-32 text-center transition-all duration-300 cursor-pointer flex flex-col items-center ${
           isBench
             ? 'bg-[#19001a]/80 border border-purple-800/60 opacity-90 hover:opacity-100 hover:z-50'
             : 'bg-[#19001a]/95 border border-purple-500/40 hover:border-[#00ff87]'
-        } shadow-[0_8px_20px_rgba(0,0,0,0.5)] hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(0,255,135,0.2)]`}
+        } shadow-[0_10px_25px_rgba(0,0,0,0.5)] hover:-translate-y-1 hover:shadow-[0_14px_35px_rgba(0,255,135,0.2)]`}
       >
         {pick.is_captain && (
           <span className="absolute -top-1 -right-1 bg-gradient-to-br from-yellow-300 to-amber-500 text-[#37003c] text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-[0_0_6px_rgba(251,191,36,0.6)] z-20 border border-[#37003c] animate-pulse">
@@ -3329,16 +3329,16 @@ export default function SquadRoom() {
           </span>
         )}
 
-        <div className="h-8 sm:h-10 flex items-center justify-center my-0.5">
+        <div className="h-10 sm:h-11 flex items-center justify-center my-0.5">
           {shirtUrl ? (
-            <img src={shirtUrl} alt="kit" loading="lazy" decoding="async" className="h-7 sm:h-8 object-contain group-hover:drop-shadow-[0_4px_10px_rgba(0,255,135,0.3)] transition-transform duration-300" />
+            <img src={shirtUrl} alt="kit" loading="lazy" decoding="async" className="h-8 sm:h-9 object-contain group-hover:drop-shadow-[0_4px_10px_rgba(0,255,135,0.3)] transition-transform duration-300" />
           ) : (
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-900"></div>
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-purple-900"></div>
           )}
         </div>
 
-        <div className="bg-[#26002b] w-full rounded-md p-1 sm:p-1.5 mt-0.5 border border-purple-900 shadow-inner">
-          <div className="text-[10px] sm:text-[11px] font-extrabold text-white truncate px-0.5">
+        <div className="bg-[#26002b] w-full rounded-lg p-1.5 mt-1 border border-purple-900 shadow-inner">
+          <div className="text-[11px] sm:text-xs font-extrabold text-white truncate px-0.5">
             {player.webName || player.name}
           </div>
           <div className="text-[9px] sm:text-[10px] text-emerald-400 font-mono mt-0.5 flex justify-center gap-1 items-center flex-wrap">
@@ -3346,14 +3346,14 @@ export default function SquadRoom() {
             <span>•</span>
             {pointsLabel === 'LIVE' ? (
               <span className="inline-flex items-center gap-1">
-                <span className="relative flex h-1 w-1">
+                <span className="relative flex h-1.5 w-1.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00ff87] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1 w-1 bg-[#00ff87]"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#00ff87]"></span>
                 </span>
                 <span className="text-[8px] font-bold">LIVE</span>
               </span>
             ) : pointsLabel === 'Yet to play' ? (
-              <span className="text-amber-300">Yet to play</span>
+              <span className="text-amber-300 text-[8px]">Yet to play</span>
             ) : (
               <span>{effectivePoints}</span>
             )}
