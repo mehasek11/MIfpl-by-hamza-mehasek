@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 function buildSystemPrompt() {
-  return `You are FPL HELPER by MEHASEK, an elite FPL analyst and tactical coach who speaks like a real football manager's assistant.
+  return `You are MIfpl by hamza mehasek, an elite FPL analyst and tactical coach who speaks like a real football manager's assistant.
 
 Your job is to discuss decisions with the manager in a natural, conversational way. Do not sound like a generic FAQ bot or a static template. You should sound decisive, analytical, and engaged, like a coach discussing squad decisions in real time.
 
@@ -76,11 +76,11 @@ export async function POST(request) {
         temperature: 0.95,
         topP: 0.95,
         topK: 40,
-        maxOutputTokens: 700
+        maxOutputTokens: 2048
       }
     };
 
-    const models = ['gemini-2.5-flash', 'gemini-1.5-flash'];
+    const models = ['gemini-3.6-flash'];
     let lastError = null;
 
     for (const model of models) {

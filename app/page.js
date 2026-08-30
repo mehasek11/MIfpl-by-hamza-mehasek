@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function SquadRoom() {
   const [activeTab, setActiveTab] = useState(() => {
@@ -27,6 +27,8 @@ export default function SquadRoom() {
   const [transferInId, setTransferInId] = useState(() => {
     try { const v = JSON.parse(localStorage.getItem('fpl-helper-state') || '{}').transferInId; return v ? Number(v) : ''; } catch { return ''; }
   });
+  const [tOutSearch, setTOutSearch] = useState('');
+  const [tInSearch, setTInSearch] = useState('');
   const [inputManagerId, setInputManagerId] = useState(() => {
     try { return JSON.parse(localStorage.getItem('fpl-helper-state') || '{}').inputManagerId || '1507193'; } catch { return '1507193'; }
   });
@@ -61,14 +63,27 @@ export default function SquadRoom() {
   const [managerId, setManagerId] = useState('1507193');
   const [managerData, setManagerData] = useState(null);
   const [managerPicks, setManagerPicks] = useState([]);
+  const [picksLocked, setPicksLocked] = useState(false);
   const [viewedTeamName, setViewedTeamName] = useState('');
   const [managerLoading, setManagerLoading] = useState(false);
+  const [playerGwPoints, setPlayerGwPoints] = useState({});
 
   // Manager Team Overlay States
   const [showManagerOverlay, setShowManagerOverlay] = useState(false);
   const [overlayManagerData, setOverlayManagerData] = useState(null);
   const [overlayManagerPicks, setOverlayManagerPicks] = useState([]);
   const [overlayManagerLoading, setOverlayManagerLoading] = useState(false);
+  const gwChosenRef = useRef(false);
+  const lastCurIdRef = useRef(null);
+  const aiChatContainerRef = useRef(null);
+
+  useEffect(() => {
+    if (!showManagerOverlay) return;
+    return () => {};
+  }, [showManagerOverlay]);
+
+  const overlayCaptain = overlayManagerPicks.find(p => p.is_captain);
+  const overlayViceCaptain = overlayManagerPicks.find(p => p.is_vice_captain);
   const [overlayTeamName, setOverlayTeamName] = useState('');
 
   // Selected Player for Modal Insights & AI Context
@@ -76,8 +91,18 @@ export default function SquadRoom() {
   const [playerDetailsLoading, setPlayerDetailsLoading] = useState(false);
   const [playerHistory, setPlayerHistory] = useState([]);
   const [playerUpcoming, setPlayerUpcoming] = useState([]);
+  const [playerModalClosing, setPlayerModalClosing] = useState(false);
 
-  // Selected Fixture for Sofascore Style Summary Modal
+  const closePlayerModal = () => {
+    if (!selectedPlayer || playerModalClosing) return;
+    setPlayerModalClosing(true);
+    setTimeout(() => {
+      setSelectedPlayer(null);
+      setPlayerModalClosing(false);
+    }, 280);
+  };
+
+   // Selected Fixture for Sofascore Style Summary Modal
   const [selectedFixture, setSelectedFixture] = useState(null);
 
   // Selected League for Standings & Ranks View
@@ -89,17 +114,29 @@ export default function SquadRoom() {
   const [isAiOpen, setIsAiOpen] = useState(false);
   const [aiChatInput, setAiChatInput] = useState('');
   const [aiMessages, setAiMessages] = useState([
-    { role: 'assistant', content: "Right, let’s get into it. I can talk through your squad, captaincy calls, transfers, and fixture risk like a proper manager’s assistant. What are you trying to solve right now?" }
+    { role: 'assistant', content: "Right, let's get into it. I can talk through your squad, captaincy calls, transfers, and fixture risk like a proper manager's assistant. What are you trying to solve right now?" }
   ]);
   const [aiThinking, setAiThinking] = useState(false);
   const [shortlist, setShortlist] = useState([]);
   const [aiBrief, setAiBrief] = useState('');
   const [differentialScan, setDifferentialScan] = useState('');
   const [playerSearch, setPlayerSearch] = useState('');
+  const [compareInsight, setCompareInsight] = useState('');
+  const [compareInsightLoading, setCompareInsightLoading] = useState(false);
+  const [transferRating, setTransferRating] = useState(null);
+  const [transferInsight, setTransferInsight] = useState('');
+  const [compareASearch, setCompareASearch] = useState('');
+  const [compareBSearch, setCompareBSearch] = useState('');
+
+  useEffect(() => {
+    if (aiChatContainerRef.current) {
+      aiChatContainerRef.current.scrollTop = aiChatContainerRef.current.scrollHeight;
+    }
+  }, [aiMessages, aiThinking]);
 
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem('squad-room-shortlist') || '[]');
+      const saved = JSON.parse(localStorage.getItem('mifpl-shortlist') || '[]');
       if (Array.isArray(saved)) setShortlist(saved);
     } catch (err) {
       console.error('Error loading shortlist', err);
@@ -108,13 +145,13 @@ export default function SquadRoom() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('squad-room-shortlist', JSON.stringify(shortlist));
+      localStorage.setItem('mifpl-shortlist', JSON.stringify(shortlist));
     }
   }, [shortlist]);
 
   useEffect(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem('squad-room-captain-log') || '[]');
+      const saved = JSON.parse(localStorage.getItem('mifpl-captain-log') || '[]');
       if (Array.isArray(saved)) setCaptainLog(saved);
     } catch (err) {
       console.error('Error loading captain log', err);
@@ -123,7 +160,7 @@ export default function SquadRoom() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('squad-room-captain-log', JSON.stringify(captainLog));
+      localStorage.setItem('mifpl-captain-log', JSON.stringify(captainLog));
     }
   }, [captainLog]);
 
@@ -210,8 +247,19 @@ export default function SquadRoom() {
 
       if (data.events) {
         setGameweeks(data.events);
-        const current = data.events.find(e => e.is_current || e.is_next);
-        if (current) setSelectedGw(current.id);
+        const currentEvent = data.events.find(e => e.is_current);
+        if (!gwChosenRef.current) {
+          const current = currentEvent || data.events.find(e => e.is_next);
+          if (current) setSelectedGw(current.id);
+          gwChosenRef.current = true;
+          if (currentEvent) lastCurIdRef.current = currentEvent.id;
+        } else if (currentEvent) {
+          const prevCur = lastCurIdRef.current;
+          if (prevCur && prevCur !== currentEvent.id && Number(selectedGw) === prevCur) {
+            setSelectedGw(currentEvent.id);
+          }
+          lastCurIdRef.current = currentEvent.id;
+        }
       }
 
       if (data.teams) {
@@ -242,7 +290,14 @@ export default function SquadRoom() {
             element_type: player.element_type,
             now_cost: (player.now_cost / 10).toFixed(1),
             chance_of_playing_next_round: player.chance_of_playing_next_round,
+            chance_of_playing_this_round: player.chance_of_playing_this_round,
+            status: player.status,
+            news: player.news,
+            selected_by_percent: player.selected_by_percent,
+            form: player.form,
+            points_per_game: player.points_per_game,
             ep_next: player.ep_next,
+            ep_this: player.ep_this,
             total_points: player.total_points,
             penalties_order: player.penalties_order,
             direct_freekicks_order: player.direct_freekicks_order,
@@ -286,10 +341,10 @@ export default function SquadRoom() {
   }, [gameweeks]);
 
   // Fetch Manager Picks and Standings
-  async function handleFetchManager(targetId, customTeamTitle = '') {
+  async function handleFetchManager(targetId, customTeamTitle = '', silent = false) {
     const idToFetch = targetId || managerId;
     if (!idToFetch) return;
-    setManagerLoading(true);
+    if (!silent) setManagerLoading(true);
     try {
       const manRes = await fetch(`/api/fpl-proxy?endpoint=manager&managerId=${idToFetch}`);
       const manData = await manRes.json();
@@ -300,9 +355,13 @@ export default function SquadRoom() {
 
       const picksRes = await fetch(`/api/fpl-proxy?endpoint=picks&managerId=${idToFetch}&event=${selectedGw}`);
       const picksData = await picksRes.json();
-      if (picksData.picks) {
+      if (picksData.picks && Array.isArray(picksData.picks)) {
         setManagerPicks(picksData.picks);
+        setPicksLocked(false);
         setManagerId(idToFetch.toString()); // Properly updates global state to fix the league bug
+      } else {
+        setManagerPicks([]);
+        setPicksLocked(true);
       }
 
       const historyRes = await fetch(`/api/fpl-proxy?endpoint=history&managerId=${idToFetch}`);
@@ -315,9 +374,48 @@ export default function SquadRoom() {
     } catch (err) {
       console.error('Error fetching manager info', err);
     } finally {
-      setManagerLoading(false);
+      if (!silent) setManagerLoading(false);
     }
   }
+
+   async function refreshPicks() {
+     if (!managerId || !selectedGw) return;
+     try {
+       const picksRes = await fetch(`/api/fpl-proxy?endpoint=picks&managerId=${managerId}&event=${selectedGw}`);
+       const picksData = await picksRes.json();
+       if (picksData.picks && Array.isArray(picksData.picks)) {
+         setManagerPicks(picksData.picks);
+       }
+     } catch (err) {
+       console.error('Error refreshing picks', err);
+     }
+   }
+
+   async function fetchSquadGwPoints() {
+     if (!managerPicks.length || !selectedGw) return;
+     const playerIds = managerPicks.map(pick => pick.element);
+     const gwPointsMap = {};
+
+     await Promise.all(
+       playerIds.map((id, index) =>
+         new Promise(async (resolve) => {
+           try {
+             await new Promise(r => setTimeout(r, index * 200));
+             const res = await fetch(`/api/fpl-proxy?endpoint=player&playerId=${id}`);
+             const data = await res.json();
+             const gwHistory = data.history || [];
+             const gwEntry = gwHistory.find(h => h.round === selectedGw);
+             gwPointsMap[id] = gwEntry ? Number(gwEntry.total_points || 0) : null;
+           } catch {
+             gwPointsMap[id] = null;
+           }
+           resolve();
+         })
+       )
+     );
+
+     setPlayerGwPoints(prev => ({ ...prev, [selectedGw]: gwPointsMap }));
+   }
 
   async function handleViewManagerTeam(entryId, playerName, entryName) {
     setOverlayManagerLoading(true);
@@ -330,8 +428,10 @@ export default function SquadRoom() {
 
       const picksRes = await fetch(`/api/fpl-proxy?endpoint=picks&managerId=${entryId}&event=${selectedGw}`);
       const picksData = await picksRes.json();
-      if (picksData.picks) {
+      if (picksData.picks && Array.isArray(picksData.picks)) {
         setOverlayManagerPicks(picksData.picks);
+      } else {
+        setOverlayManagerPicks([]);
       }
     } catch (err) {
       console.error('Error fetching manager team for overlay', err);
@@ -345,6 +445,53 @@ export default function SquadRoom() {
       handleFetchManager(managerId, viewedTeamName);
     }
   }, [selectedGw]);
+
+  useEffect(() => {
+    if (!managerId) return;
+    let cancelled = false;
+    const runSilent = () => {
+      if (cancelled || !managerId) return;
+      handleFetchManager(managerId, viewedTeamName, true);
+    };
+    const refreshAll = () => {
+      if (cancelled) return;
+      refreshLiveFplData()
+        .then(() => refreshPicks())
+        .then(() => fetchSquadGwPoints())
+        .then(async () => {
+          if (!selectedGw) return;
+          try {
+            const res = await fetch(`/api/fpl-proxy?endpoint=fixtures&event=${selectedGw}`);
+            const data = await res.json();
+            if (Array.isArray(data)) {
+              setFixtures(data);
+            }
+            setLastUpdated(new Date().toISOString());
+          } catch (err) {
+            console.error('Error refreshing fixtures', err);
+          }
+        })
+        .catch(() => {});
+    };
+    const onVisible = () => {
+      if (!document.hidden) refreshAll();
+    };
+    refreshAll();
+    const interval = setInterval(refreshAll, 60 * 1000);
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [managerId, selectedGw]);
+
+  useEffect(() => {
+    if (!managerPicks.length || !selectedGw) return;
+    fetchSquadGwPoints();
+  }, [managerPicks, selectedGw]);
 
   useEffect(() => {
     if (!managerPicks.length || !selectedGw) return;
@@ -376,8 +523,7 @@ export default function SquadRoom() {
   }, [managerPicks, playerMap, selectedGw, teamMap]);
 
   useEffect(() => {
-    const hasLiveFixtures = Array.isArray(fixtures) && fixtures.some((fixture) => fixture.started && !fixture.finished);
-    if (!hasLiveFixtures) return;
+    if (!selectedGw) return;
 
     const intervalId = setInterval(async () => {
       try {
@@ -388,12 +534,12 @@ export default function SquadRoom() {
         }
         setLastUpdated(new Date().toISOString());
       } catch (err) {
-        console.error('Error refreshing live fixtures', err);
+        console.error('Error refreshing fixtures', err);
       }
-    }, 15000);
+    }, 60 * 1000);
 
     return () => clearInterval(intervalId);
-  }, [fixtures, selectedGw]);
+  }, [selectedGw]);
 
   // Fetch fixtures
   useEffect(() => {
@@ -491,25 +637,77 @@ export default function SquadRoom() {
   }
 
   // Handle AI Chat Submission with Screen Context
-  const handleAiSubmit = async (e) => {
-    e.preventDefault();
-    if (!aiChatInput.trim()) return;
+  const handleAiSubmit = async (e, overridePrompt) => {
+    if (e) e.preventDefault();
+    const userMsg = overridePrompt || aiChatInput;
+    if (!userMsg.trim()) return;
 
-    const userMsg = aiChatInput;
     setAiChatInput('');
     setAiMessages(prev => [...prev, { role: 'user', content: userMsg }]);
     setAiThinking(true);
 
     try {
+      const captainPick = managerPicks.find((pick) => pick.is_captain);
+      const vcPick = managerPicks.find((pick) => pick.is_vice_captain);
+      const compareA = playerMap[compareAId];
+      const compareB = playerMap[compareBId];
+      const squadSetPieces = {
+        penaltyTakers: Object.values(playerMap).filter(p => Number(p.penalties_order) === 1).map(p => `${p.webName} (${teamMap[p.team]?.short_name || p.team})`).slice(0, 20),
+        directFreekickTakers: Object.values(playerMap).filter(p => Number(p.direct_freekicks_order) === 1).map(p => p.webName).slice(0, 20),
+        cornerTakers: Object.values(playerMap).filter(p => Number(p.corners_and_indirect_freekicks_order) === 1).map(p => p.webName).slice(0, 20)
+      };
+      const gwTeamPoints = startingXI.reduce((sum, pick) => sum + Number(pick.stats?.total_points ?? (playerMap[pick.element]?.total_points || 0)), 0);
+
+      const screenMeta = {
+        dashboard: `You are looking at the Executive Dashboard (GW ${selectedGw}). It shows the FPL snapshot (current GW points ${managerData?.summary_event_points ?? '—'}, overall rank ${managerData?.summary_overall_rank ?? '—'}), best captain (${captainPick ? playerMap[captainPick.element]?.webName || '—' : '—'}), risk watch, and the latest AI brief. Answer as if you are looking at this dashboard with the user.`,
+        squad: `You are on Pitch View (squad ${viewedTeamName}). It shows the full starting XI formation ${startingGK.length}-${startingDEF.length}-${startingMID.length}-${startingFWD.length}, captain ${captainPick ? playerMap[captainPick.element]?.webName || '' : ''} and the bench. The current GW team points total is ${gwTeamPoints}. Answer as if reviewing this exact lineup with the user.`,
+        transfers: `You are on Transfers for ${viewedTeamName}. It shows suggested transfers (recommended options and their xP) plus the AI transfer rating tool. The squad has ${squadHealth.totalCost.toFixed(1)}m invested and ${squadHealth.totalPoints} total points.`,
+        compare: `You are on Compare. The user is comparing ${compareA?.webName || 'Player A'} (${compareA ? teamMap[compareA.team]?.name || '' : ''}) vs ${compareB?.webName || 'Player B'} (${compareB ? teamMap[compareB.team]?.name || '' : ''}) side by side.`,
+        market: `You are on Market Watch for ${viewedTeamName}. It shows differentials (hidden gem picks), transfer radar, watchlist alerts and AI ratings.`,
+        shortlist: `You are on Shortlist. The user has ${shortlist.length} saved players on their watchlist: ${shortlist.slice(0, 6).map(id => playerMap[id]?.webName || '?').join(', ') || 'none yet'}.`,
+        leagues: `You are on Leagues & Ranks for ${viewedTeamName}. It shows the user's classic leagues and standings, and lets them open another manager's full team.`,
+        fixtures: `You are on Fixtures Hub (GW ${selectedGw}). It shows every fixture of the gameweek with kickoff times and AI takeaways, and a match center opens by clicking a match.`
+      };
+
+      const teamChips = (managerData?.chips || []).filter(chip => chip && chip.name);
+      const wildcardChips = teamChips.filter(chip => chip.name === 'wildcard');
+      const freeHitChips = teamChips.filter(chip => chip.name === 'freehit');
+      const benchBoostChips = teamChips.filter(chip => chip.name === 'bboost');
+      const tripleCaptainChips = teamChips.filter(chip => chip.name === '3xc');
+      const availableWildcard = !wildcardChips.some(chip => chip.status === 'played' || chip.status === 'active');
+      const availableFreeHit = !freeHitChips.some(chip => chip.status === 'played' || chip.status === 'active');
+      const availableBenchBoost = !benchBoostChips.some(chip => chip.status === 'played' || chip.status === 'active');
+      const availableTripleCaptain = !tripleCaptainChips.some(chip => chip.status === 'played' || chip.status === 'active');
+
       const context = {
         viewedTeamName,
         managerId,
         selectedGameweek: selectedGw,
+        bank: managerData?.last_deadline_bank ?? null,
+        transfersThisGw: managerData?.transfers_event ?? 0,
+        transfersTotal: managerData?.transfers_total ?? 0,
+        chips: {
+          wildcard: availableWildcard,
+          freeHit: availableFreeHit,
+          benchBoost: availableBenchBoost,
+          tripleCaptain: availableTripleCaptain,
+          played: teamChips.filter(chip => chip.status === 'played' || chip.status === 'active').map(chip => ({ name: chip.name, event: chip.event }))
+        },
+        pointsOnBench: managerData?.points_on_bench ?? 0,
+        currentScreen: { tab: activeTab, focus: screenMeta[activeTab] || screenMeta.dashboard },
+        squadSetPieces,
+        captain: captainPick ? {
+          name: playerMap[captainPick.element]?.webName || '—',
+          team: teamMap[playerMap[captainPick.element]?.team]?.name,
+          epsNext: playerMap[captainPick.element]?.ep_next,
+          xp: Number(playerMap[captainPick.element]?.ep_next || 0).toFixed(1)
+        } : null,
+        gwTeamPoints,
         selectedPlayer: selectedPlayer ? {
           ...selectedPlayer,
           teamName: teamMap[selectedPlayer.team]?.name || 'Unknown team',
-          chanceOfPlaying: selectedPlayer.chance_of_playing_next_round ?? 100,
-          chanceOfInjury: 100 - (selectedPlayer.chance_of_playing_next_round ?? 100)
+          chanceOfPlaying: selectedPlayer.chance_of_playing_next_round ?? null,
+          chanceOfInjury: selectedPlayer.chance_of_playing_next_round == null ? null : 100 - selectedPlayer.chance_of_playing_next_round
         } : null,
         selectedFixture: selectedFixture ? {
           id: selectedFixture.id,
@@ -524,6 +722,10 @@ export default function SquadRoom() {
         squad: startingXI.slice(0, 11).map(pick => {
           const player = playerMap[pick.element];
           if (!player) return null;
+          const roles = [];
+          if (Number(player.penalties_order) === 1) roles.push('penalty taker');
+          if (Number(player.direct_freekicks_order) === 1) roles.push('direct FK taker');
+          if (Number(player.corners_and_indirect_freekicks_order) === 1) roles.push('corner taker');
           return {
             name: player.webName || player.name,
             position: getPositionCategory(player.element_type),
@@ -531,7 +733,11 @@ export default function SquadRoom() {
             points: player.total_points,
             team: teamMap[player.team]?.short_name || 'TEAM',
             ep_next: player.ep_next,
-            chanceOfPlaying: player.chance_of_playing_next_round ?? 100
+            form: player.form,
+            points_per_game: player.points_per_game,
+            chanceOfPlaying: player.chance_of_playing_next_round ?? null,
+            status: player.status,
+            setPieces: roles.length ? roles.join(', ') : 'none'
           };
         }).filter(Boolean),
         bench: substitutes.slice(0, 4).map(pick => {
@@ -544,6 +750,8 @@ export default function SquadRoom() {
             points: player.total_points
           };
         }).filter(Boolean),
+        transfers: recommendedTransfers.slice(0, 4).map(t => ({ name: t.webName, team: teamMap[t.team]?.short_name, price: t.now_cost, xp: Number(t.ep_next || 0).toFixed(1) })),
+        shortlist: shortlist.slice(0, 8).map(id => playerMap[id]?.webName).filter(Boolean),
         fixtures: fixtures.slice(0, 6).map(f => ({
           home: teamMap[f.team_h]?.short_name || 'HOME',
           away: teamMap[f.team_a]?.short_name || 'AWAY',
@@ -592,6 +800,10 @@ export default function SquadRoom() {
     }
   };
 
+  const submitAiMessage = (prompt) => {
+    handleAiSubmit(null, prompt);
+  };
+
   const startingXI = managerPicks.filter(p => p.position <= 11);
   const substitutes = managerPicks.filter(p => p.position > 11);
   const ownedPlayerIds = new Set(managerPicks.map(pick => pick.element));
@@ -603,7 +815,17 @@ export default function SquadRoom() {
   const overlayMID = overlayStartingXI.filter(p => playerMap[p.element]?.element_type === 3);
   const overlayFWD = overlayStartingXI.filter(p => playerMap[p.element]?.element_type === 4);
 
-  const getAiRating = (score) => Math.min(96, Math.max(64, Math.round(score)));
+  const withListRating = (list, scoreKey) => {
+    if (!list.length) return list;
+    const scores = list.map((p) => Number(p[scoreKey] || 0));
+    const min = Math.min(...scores);
+    const max = Math.max(...scores);
+    const range = Math.max(0.0001, max - min);
+    return list.map((p) => ({
+      ...p,
+      aiRating: Math.max(1, Math.min(100, Math.round(55 + 45 * ((Number(p[scoreKey]) - min) / range))))
+    }));
+  };
 
   const captaincySuggestion = managerPicks
     .filter(pick => playerMap[pick.element])
@@ -621,70 +843,79 @@ export default function SquadRoom() {
     })
     .sort((a, b) => b.pressure - a.pressure)[0];
 
-  const transferRadar = Object.values(playerMap)
-    .filter(player => !ownedPlayerIds.has(player.id) && Number(player.now_cost) <= 8.5 && (Number(player.ep_next || 0) > 1 || Number(player.total_points || 0) > 20))
-    .map(player => {
-      const fixture = fixtures.find(f => f.team_h === player.team || f.team_a === player.team);
-      const difficulty = fixture
-        ? (fixture.team_h === player.team ? fixture.team_h_difficulty : fixture.team_a_difficulty)
-        : 3;
-      const opportunityScore = (Number(player.ep_next || 0) * 12) + (Number(player.total_points || 0) / 3) + (difficulty <= 2 ? 10 : difficulty === 3 ? 5 : 0) - Number(player.now_cost) * 3;
-      return {
-        ...player,
-        opportunityScore,
-        aiRating: getAiRating(opportunityScore * 1.2)
-      };
-    })
-    .sort((a, b) => b.opportunityScore - a.opportunityScore)
-    .slice(0, 3);
+  const transferRadar = withListRating(
+    Object.values(playerMap)
+      .filter(player => !ownedPlayerIds.has(player.id) && Number(player.now_cost) <= 8.5 && (Number(player.ep_next || 0) > 1 || Number(player.total_points || 0) > 20))
+      .map(player => {
+        const fixture = fixtures.find(f => f.team_h === player.team || f.team_a === player.team);
+        const difficulty = fixture
+          ? (fixture.team_h === player.team ? fixture.team_h_difficulty : fixture.team_a_difficulty)
+          : 3;
+        const opportunityScore = (Number(player.ep_next || 0) * 12) + (Number(player.total_points || 0) / 3) + (difficulty <= 2 ? 10 : difficulty === 3 ? 5 : 0) - Number(player.now_cost) * 3;
+        return {
+          ...player,
+          opportunityScore
+        };
+      })
+      .sort((a, b) => b.opportunityScore - a.opportunityScore)
+      .slice(0, 3),
+    'opportunityScore'
+  );
 
-  const recommendedTransfers = Object.values(playerMap)
-    .filter(player => !ownedPlayerIds.has(player.id) && Number(player.now_cost) <= 8.5 && Number(player.ep_next || 0) > 1.5)
-    .map(player => {
-      const upcoming = fixtures.filter(fix => fix.team_h === player.team || fix.team_a === player.team).slice(0, 3);
-      const difficulty = upcoming.length
-        ? upcoming.reduce((sum, fix) => sum + Number(fix.team_h === player.team ? fix.team_h_difficulty : fix.team_a_difficulty || 3), 0) / upcoming.length
-        : 3;
-      const formBoost = Number(player.total_points || 0) / 2;
-      const score = Number(player.ep_next || 0) * 12 + formBoost * 1.8 + (difficulty <= 2 ? 8 : difficulty === 3 ? 4 : 0) - Number(player.now_cost) * 3;
-      return { ...player, difficulty, score, aiRating: getAiRating(score * 1.6 + Number(player.total_points || 0) * 0.25), nextGw: selectedGw + 1 };
-    })
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 4);
+  const recommendedTransfers = withListRating(
+    Object.values(playerMap)
+      .filter(player => !ownedPlayerIds.has(player.id) && Number(player.now_cost) <= 8.5 && Number(player.ep_next || 0) > 1.5)
+      .map(player => {
+        const upcoming = fixtures.filter(fix => fix.team_h === player.team || fix.team_a === player.team).slice(0, 3);
+        const difficulty = upcoming.length
+          ? upcoming.reduce((sum, fix) => sum + Number(fix.team_h === player.team ? fix.team_h_difficulty : fix.team_a_difficulty || 3), 0) / upcoming.length
+          : 3;
+        const formBoost = Number(player.total_points || 0) / 2;
+        const score = Number(player.ep_next || 0) * 12 + formBoost * 1.8 + (difficulty <= 2 ? 8 : difficulty === 3 ? 4 : 0) - Number(player.now_cost) * 3;
+        return { ...player, difficulty, score, nextGw: selectedGw + 1 };
+      })
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 4),
+    'score'
+  );
 
-  const differentialPlayers = Object.values(playerMap)
-    .filter((player) => !ownedPlayerIds.has(player.id) && Number(player.now_cost) <= 8.5 && Number(player.ep_next || 0) >= 1.0)
-    .map((player) => {
-      const upcoming = fixtures.filter((fix) => fix.team_h === player.team || fix.team_a === player.team).slice(0, 3);
-      const avgDifficulty = upcoming.length
-        ? upcoming.reduce((sum, fix) => sum + Number(fix.team_h === player.team ? fix.team_h_difficulty : fix.team_a_difficulty || 3), 0) / upcoming.length
-        : 3;
-      const score = Number(player.ep_next || 0) * 15 + (Number(player.total_points || 0) / 3) + (avgDifficulty <= 2 ? 9 : avgDifficulty === 3 ? 5 : 0) - Number(player.now_cost) * 2.6;
-      return {
-        ...player,
-        avgDifficulty: Number(avgDifficulty.toFixed(1)),
-        differentialScore: Number(score.toFixed(1)),
-        aiRating: getAiRating(score * 1.5 + Number(player.total_points || 0) * 0.18)
-      };
-    })
-    .sort((a, b) => b.differentialScore - a.differentialScore)
-    .slice(0, 8);
+  const differentialPlayers = withListRating(
+    Object.values(playerMap)
+      .filter((player) => !ownedPlayerIds.has(player.id) && Number(player.now_cost) <= 8.5 && Number(player.ep_next || 0) >= 1.0)
+      .map((player) => {
+        const upcoming = fixtures.filter((fix) => fix.team_h === player.team || fix.team_a === player.team).slice(0, 3);
+        const avgDifficulty = upcoming.length
+          ? upcoming.reduce((sum, fix) => sum + Number(fix.team_h === player.team ? fix.team_h_difficulty : fix.team_a_difficulty || 3), 0) / upcoming.length
+          : 3;
+        const score = Number(player.ep_next || 0) * 15 + (Number(player.total_points || 0) / 3) + (avgDifficulty <= 2 ? 9 : avgDifficulty === 3 ? 5 : 0) - Number(player.now_cost) * 2.6;
+        return {
+          ...player,
+          avgDifficulty: Number(avgDifficulty.toFixed(1)),
+          differentialScore: Number(score.toFixed(1))
+        };
+      })
+      .sort((a, b) => b.differentialScore - a.differentialScore)
+      .slice(0, 8),
+    'differentialScore'
+  );
 
-  const hiddenGems = Object.values(playerMap)
-    .filter(player => !ownedPlayerIds.has(player.id) && !differentialPlayers.some(p => p.id === player.id) && Number(player.now_cost) <= 6.5 && Number(player.ep_next || 0) >= 1.2)
-    .map(player => {
-      const fixture = fixtures.find(f => f.team_h === player.team || f.team_a === player.team);
-      const difficulty = fixture ? (fixture.team_h === player.team ? fixture.team_h_difficulty : fixture.team_a_difficulty) : 3;
-      const gemScore = Number(player.ep_next || 0) * 10 + (Number(player.total_points || 0) / 2) + (difficulty <= 2 ? 8 : difficulty === 3 ? 4 : 0) - Number(player.now_cost) * 2;
-      return {
-        ...player,
-        difficulty,
-        gemScore,
-        aiRating: getAiRating(gemScore * 1.7 + Number(player.total_points || 0) * 0.2)
-      };
-    })
-    .sort((a, b) => b.gemScore - a.gemScore)
-    .slice(0, 5);
+  const hiddenGems = withListRating(
+    Object.values(playerMap)
+      .filter(player => !ownedPlayerIds.has(player.id) && !differentialPlayers.some(p => p.id === player.id) && Number(player.now_cost) <= 6.5 && Number(player.ep_next || 0) >= 1.2)
+      .map(player => {
+        const fixture = fixtures.find(f => f.team_h === player.team || f.team_a === player.team);
+        const difficulty = fixture ? (fixture.team_h === player.team ? fixture.team_h_difficulty : fixture.team_a_difficulty) : 3;
+        const gemScore = Number(player.ep_next || 0) * 10 + (Number(player.total_points || 0) / 2) + (difficulty <= 2 ? 8 : difficulty === 3 ? 4 : 0) - Number(player.now_cost) * 2;
+        return {
+          ...player,
+          difficulty,
+          gemScore
+        };
+      })
+      .sort((a, b) => b.gemScore - a.gemScore)
+      .slice(0, 5),
+    'gemScore'
+  );
 
   const fixturePressure = managerPicks
     .filter(pick => playerMap[pick.element])
@@ -697,7 +928,7 @@ export default function SquadRoom() {
       return {
         ...pick,
         player,
-        risk: difficulty * 5 + (Number(player.chance_of_playing_next_round || 0) < 75 ? 8 : 0),
+        risk: difficulty * 5 + (Number(player.chance_of_playing_next_round || 100) < 75 ? 8 : 0),
         difficulty,
       };
     })
@@ -884,16 +1115,18 @@ export default function SquadRoom() {
 
   const displayedDifferentials = differentialPlayers.length
     ? differentialPlayers
-    : Object.values(playerMap)
-        .filter((player) => !ownedPlayerIds.has(player.id) && Number(player.now_cost) <= 8.5 && Number(player.ep_next || 0) >= 0.7)
-        .slice(0, 6)
-        .map((player) => ({
-          ...player,
-          avgDifficulty: 3,
-          differentialScore: Number((Number(player.ep_next || 0) * 10 + Number(player.total_points || 0) * 0.2).toFixed(1)),
-          aiRating: getAiRating(Number(player.ep_next || 0) * 10 + Number(player.total_points || 0) * 0.4)
-        }))
-        .sort((a, b) => b.differentialScore - a.differentialScore);
+    : withListRating(
+        Object.values(playerMap)
+          .filter((player) => !ownedPlayerIds.has(player.id) && Number(player.now_cost) <= 8.5 && Number(player.ep_next || 0) >= 0.7)
+          .slice(0, 6)
+          .map((player) => ({
+            ...player,
+            avgDifficulty: 3,
+            differentialScore: Number((Number(player.ep_next || 0) * 10 + Number(player.total_points || 0) * 0.2).toFixed(1))
+          }))
+          .sort((a, b) => b.differentialScore - a.differentialScore),
+        'differentialScore'
+      );
 
   const handleDifferentialScan = () => {
     const topPlayers = displayedDifferentials.slice(0, 3);
@@ -913,6 +1146,17 @@ export default function SquadRoom() {
     ]);
   };
 
+  const teamPulse = (teamId) => {
+    const squad = Object.values(playerMap).filter(p => p.team === teamId && Number(p.points_per_game || 0) > 0);
+    const sorted = [...squad].sort((a, b) => (Number(b.points_per_game || 0) + Number(b.ep_next || 0) * 2) - (Number(a.points_per_game || 0) + Number(a.ep_next || 0) * 2));
+    const watch = sorted.slice(0, 2).map(p => `${p.webName} (${Number(p.points_per_game || 0).toFixed(1)} ppg)`);
+    const unavailable = squad.filter(p => p.status === 'i' || p.status === 'u' || p.status === 'd').slice(0, 2).map(p => `${p.webName}${p.status === 'i' ? ' (injured)' : p.status === 'd' ? ' (doubtful)' : ' (unavailable)'}`);
+    const avoid = unavailable.length
+      ? unavailable
+      : sorted.slice(-2).filter(p => Number(p.points_per_game || 0) < 2).map(p => `${p.webName} (below-par output)`);
+    return { watch, avoid: Array.isArray(avoid) ? avoid : [] };
+  };
+
   const fixtureTakeaways = fixtures.map((fixture) => {
     const homeTeam = teamMap[fixture.team_h];
     const awayTeam = teamMap[fixture.team_a];
@@ -920,21 +1164,40 @@ export default function SquadRoom() {
     const awayDiff = Number(fixture.team_a_difficulty || 3);
     const homeName = homeTeam?.short_name || 'Home';
     const awayName = awayTeam?.short_name || 'Away';
-    const homeAttack = homeDiff <= 2 ? 'strong attacking setup' : homeDiff === 3 ? 'balanced attacking profile' : 'harder route to chances';
-    const awayAttack = awayDiff <= 2 ? 'strong attacking setup' : awayDiff === 3 ? 'balanced attacking profile' : 'harder route to chances';
+    const homeAttack = homeDiff <= 2 ? 'a strong attacking setup' : homeDiff === 3 ? 'a balanced attacking profile' : 'a hard route to chances';
+    const awayAttack = awayDiff <= 2 ? 'a strong attacking setup' : awayDiff === 3 ? 'a balanced attacking profile' : 'a hard route to chances';
     const premiumAngle = homeDiff <= 2 && awayDiff >= 3
-      ? `${homeName} are the better route for FPL returns because they have the cleaner matchup and usually create the better-value attacking platform.`
+      ? `${homeName} carry the cleaner matchup and usually build the better-value attacking platform for FPL returns.`
       : awayDiff <= 2 && homeDiff >= 3
-        ? `${awayName} are the stronger angle because they carry a more favourable difficulty profile and can deliver more reliable xP.`
-        : `${homeName} vs ${awayName} is a balanced matchup. The practical move is to lean on the side with cleaner minutes, stronger set-piece threat, and a more consistent rotation profile.`;
+        ? `${awayName} carry the more favourable difficulty profile and should deliver the more reliable xP.`
+        : `This one profiles as a balanced matchup, so the practical edge is minutes security, set-piece threat and rotation stability rather than fixture hype.`;
+    const setup = `${homeName} are in ${homeAttack}, while ${awayName} sit in ${awayAttack}. ${premiumAngle}`;
 
-    const recommendation = homeDiff <= 2 || awayDiff <= 2
-      ? 'Best FPL angle: target the attacking players on the easier side of this fixture, then check set-piece takers and captaincy confidence before locking a decision.'
-      : 'Best FPL angle: treat it as a riskier gameweek fixture. Prioritise players with stable minutes and avoid overreacting to short-term volatility unless the matchup is clearly favorable.';
+    const homePulse = teamPulse(fixture.team_h);
+    const awayPulse = teamPulse(fixture.team_a);
+    const pulseLine = homePulse.watch.length
+      ? `${homeName}: look out for ${homePulse.watch.join(' and ')}${homePulse.avoid.length ? ` — while ${homePulse.avoid.join(' and ')} look best avoided. ` : '. '}${awayName}: ${awayPulse.watch.length ? `the names to follow are ${awayPulse.watch.join(' and ')}` : 'their usual creators lead the xP chart'}${awayPulse.avoid.length ? `, and ${awayPulse.avoid.join(' and ')} are best avoided.` : '.'}`
+      : `For ${homeName} and ${awayName}, lean on the reliable set-piece takers and proven scorers rather than chasing upside.`;
+
+    const openers = [
+      `Scouting ${homeName} vs ${awayName}: ${setup}`,
+      `Here is my read on ${homeName} v ${awayName}: ${setup}`,
+      `Pulse check on ${homeName} vs ${awayName}: ${setup}`,
+      `${homeName} meet ${awayName} this gameweek — ${setup}`,
+      `${homeName} host ${awayName} in a tie that looks ${homeDiff <= 2 ? 'favourable' : homeDiff === 3 ? 'balanced' : 'tough'}. ${setup}`,
+      `An interesting one in GW ${selectedGw}: ${homeName} vs ${awayName}. ${setup}`
+    ];
+    const closers = [
+      ` Best move: back the side with the surer route to returns and let set-piece takers decide the rest.`,
+      ` The captaincy hint: trust the player on the easier side of the pitch and check team news before lockout.`,
+      ` If you must pick one side, chase the higher xP line rather than the fixture name.`
+    ];
+    const opener = openers[fixture.id % openers.length];
+    const closer = closers[fixture.id % closers.length];
 
     return {
       ...fixture,
-      aiTakeaway: `${homeName} are operating in a ${homeAttack}, while ${awayName} sit in a ${awayAttack}. ${premiumAngle} ${recommendation}`
+      aiTakeaway: `${opener} ${pulseLine}${closer}`
     };
   });
 
@@ -1024,12 +1287,12 @@ export default function SquadRoom() {
     const started = Boolean(fixture.started);
     const finished = Boolean(fixture.finished);
 
-    if (finished) {
-      return { label: 'FT', isLive: false, isFinished: true, minutes };
+    if (finished || minutes >= 90) {
+      return { label: 'Full Time', isLive: false, isFinished: true, minutes };
     }
 
     if (started && minutes > 0) {
-      return { label: 'LIVE', isLive: true, isFinished: false, minutes };
+      return { label: 'Live in Progress', isLive: true, isFinished: false, minutes };
     }
 
     return { label: 'Upcoming', isLive: false, isFinished: false, minutes };
@@ -1059,9 +1322,11 @@ export default function SquadRoom() {
     const nextDifficulty = nextFixture ? Number(nextFixture.team_h === player.team ? nextFixture.team_h_difficulty : nextFixture.team_a_difficulty || 3) : 3;
     const risk = nextDifficulty <= 2 ? 'favourable' : nextDifficulty === 3 ? 'balanced' : 'tough';
     const minutesText = summary.minutes ? `${summary.minutes} minutes` : 'no recent minutes recorded';
-    const rawChance = Number(player.chance_of_playing_next_round);
-    const hasChance = Number.isFinite(rawChance) && rawChance >= 0;
-    const chance = hasChance ? rawChance : null;
+    const rawChance = player.chance_of_playing_next_round;
+    const hasChance = rawChance !== null && rawChance !== undefined && Number.isFinite(Number(rawChance)) && Number(rawChance) >= 0;
+    const statusFallback = !hasChance && player.status === 'a' ? 100 : !hasChance && (player.status === 'i' || player.status === 'u') ? 0 : !hasChance && player.status === 'd' ? 50 : null;
+    const chance = hasChance ? Number(rawChance) : statusFallback;
+    const chanceSource = hasChance ? 'official FPL availability' : statusFallback !== null ? 'their official FPL status' : null;
     const fitnessLabel = chance === null
       ? 'no official FPL fitness update is available yet'
       : chance >= 90
@@ -1075,7 +1340,7 @@ export default function SquadRoom() {
     const goalOrAssist = summary.goals + summary.assists > 0 ? `${summary.goals} goals and ${summary.assists} assists` : 'no goals or assists recorded';
     const fitnessSentence = chance === null
       ? 'The current fitness signal is unavailable from FPL right now.'
-      : `The current fitness signal is ${fitnessLabel} (${chance}%).`;
+      : `The current fitness signal is ${fitnessLabel} (${chance}%).${!hasChance && chanceSource ? ` Estimated from ${chanceSource} because FPL have not published an availability number yet.` : ''}`;
 
     return `${player.webName} has ${recentForm}, ${goalOrAssist}, and ${minutesText}. ${fitnessSentence} The next fixture is ${risk} against ${nextOpp}. On expected points, he is at ${base.toFixed(1)} xP next and the recent value trend sits at ${form.toFixed(1)} when adjusted for form. That means the practical call is to treat this as a real data-based decision: lean on minutes, recent output, and fixture difficulty rather than a made-up fit score.`;
   };
@@ -1155,35 +1420,97 @@ export default function SquadRoom() {
     return xP * 10 + form + priceValue;
   };
 
+  const clampEdge = (v) => Math.min(1, Math.max(-1, v));
+
   const getTransferInsight = (outPlayer, inPlayer) => {
     if (!outPlayer || !inPlayer) return { rating: 0, text: 'Select both players to get an AI assessment.' };
 
-    const outScore = getPlayerValueScore(outPlayer);
-    const inScore = getPlayerValueScore(inPlayer);
-    const priceDelta = Number(inPlayer.now_cost || 0) - Number(outPlayer.now_cost || 0);
-    const fixtureGain = Number(inPlayer.ep_next || 0) - Number(outPlayer.ep_next || 0);
-    const outXp = Number(outPlayer.ep_next || 0);
-    const inXp = Number(inPlayer.ep_next || 0);
-    const outForm = Number(outPlayer.total_points || 0);
-    const inForm = Number(inPlayer.total_points || 0);
-    const rating = Math.min(95, Math.max(55, Math.round((inScore * 0.72 + fixtureGain * 20 + (priceDelta <= 0 ? 10 : -8) + (inForm > outForm ? 6 : 0)))));
+    const num = (v) => Number(v || 0);
+    const outXp = num(outPlayer.ep_next); const inXp = num(inPlayer.ep_next);
+    const outForm = num(outPlayer.form); const inForm = num(inPlayer.form);
+    const outPpg = num(outPlayer.points_per_game); const inPpg = num(inPlayer.points_per_game);
+    const outTotal = num(outPlayer.total_points); const inTotal = num(inPlayer.total_points);
+    const outCost = num(outPlayer.now_cost); const inCost = num(inPlayer.now_cost);
+    const outCopn = num(outPlayer.chance_of_playing_next_round); const inCopn = num(inPlayer.chance_of_playing_next_round);
 
-    let text = `${inPlayer.webName} is the better value play because he carries ${inXp.toFixed(1)} xP, a stronger cost-to-upside profile, and the rate of return is better than ${outPlayer.webName}'s ${outXp.toFixed(1)} xP. The move also improves your squad balance and likely keeps a cleaner route to points.`;
+    const factors = [
+      { key: 'Expected points next GW', w: 0.25, raw: inXp, vsRaw: outXp, edge: clampEdge((inXp - outXp) / 2) },
+      { key: 'Short-term form', w: 0.15, raw: inForm, vsRaw: outForm, edge: clampEdge((inForm - outForm) / 4) },
+      { key: 'Points per game', w: 0.15, raw: inPpg, vsRaw: outPpg, edge: clampEdge((inPpg - outPpg) / 4) },
+      { key: 'Season ceiling (total pts)', w: 0.10, raw: inTotal, vsRaw: outTotal, edge: clampEdge((inTotal - outTotal) / 40) },
+      { key: 'Cost efficiency', w: 0.20, raw: 1 - inCost / 15, vsRaw: 1 - outCost / 15, edge: clampEdge(((1 - inCost / 15) - (1 - outCost / 15)) / 0.4) },
+      { key: 'Playing safety (next round)', w: 0.15, raw: inCopn, vsRaw: outCopn, edge: clampEdge((inCopn - outCopn) / 50) },
+    ];
 
-    if (fixtureGain <= 0 && priceDelta > 0) {
-      text = `${inPlayer.webName} does offer upside, but the move is not clean on value. ${outPlayer.webName} is still producing ${outXp.toFixed(1)} xP and holds a more stable floor, so the AI only likes this if your team needs a role change or fixture swing rather than pure output.`;
-    }
+    const rawScore = factors.reduce((acc, f) => acc + f.w * ((f.edge + 1) / 2), 0);
+    const rating = Math.min(99, Math.max(1, Math.round(rawScore * 100)));
 
-    if (priceDelta <= 0 && fixtureGain > 0) {
-      text = `${inPlayer.webName} looks stronger on both value and upside. He offers ${inXp.toFixed(1)} xP versus ${outPlayer.webName}'s ${outXp.toFixed(1)} xP, and the lower cost means you can preserve cash while gaining a clearer points path.`;
-    }
+    const verdict =
+      rating >= 75 ? 'Strong upgrade - the incoming player is clearly better than who he replaces.'
+      : rating >= 60 ? 'Solid improvement - the numbers favour the incoming player overall.'
+      : rating >= 45 ? 'Mixed move - the upgrade factors are balanced by cost and risk trade-offs.'
+      : rating >= 30 ? 'Likely a downgrade - the numbers do not justify the switch.'
+      : 'Poor move - the transfer is worse on most of the measured factors.';
 
-    if (outScore > inScore + 4) {
-      text = `The AI is cautious because ${outPlayer.webName} still gives a better overall floor. ${inPlayer.webName} is a nice upside play, but the move does not offset the stability, role security, and consistent output you currently get from ${outPlayer.webName}.`;
-    }
+    let text = `Rated ${rating}/100. ${verdict}\nFactor breakdown (${inPlayer.webName} vs ${outPlayer.webName}):`;
+    factors.forEach((f) => {
+      const dir = f.edge >= 0.15 ? 'outperforms' : f.edge <= -0.15 ? 'trails' : 'matches';
+      const fmt = (v) => (Number.isFinite(v) ? (Math.round(v * 100) / 100).toFixed(2) : '0.00');
+      text += `\n\n${f.key}: ${fmt(f.raw)} vs ${fmt(f.vsRaw)} - ${inPlayer.webName} ${dir} ${outPlayer.webName} (${(f.edge * 100).toFixed(0)} pts on the scale)`;
+    });
+    const net = rating - 50;
+    text += `\n\nNet impact: ${net >= 0 ? `+${net}` : net} vs a neutral 50/100. `;
+    text += inCost > outCost
+      ? `He costs £${(inCost - outCost).toFixed(1)}m more, which is factored into the score.`
+      : inCost < outCost
+        ? `He also costs £${(outCost - inCost).toFixed(1)}m less, freeing up budget.`
+        : 'Prices are the same, so cost is not a differentiator here.';
 
     return { rating, text };
   };
+
+  const handleRateTransfer = () => {
+    const outPlayer = playerMap[transferOutId];
+    const inPlayer = playerMap[transferInId];
+    if (!outPlayer || !inPlayer) return;
+    const result = getTransferInsight(outPlayer, inPlayer);
+    setTransferRating(result.rating);
+    setTransferInsight(result.text);
+  };
+
+  const handleSaveTransfer = () => {
+    const outPlayer = playerMap[transferOutId];
+    const inPlayer = playerMap[transferInId];
+    if (!outPlayer || !inPlayer) return;
+    const transferId = `${transferOutId}-${transferInId}`;
+    setSavedTransferIds(prev => {
+      const next = new Set(prev);
+      next.add(transferId);
+      return next;
+    });
+    setSavedTransfers((prev) => {
+      const exists = prev.some(t => t.outId === transferOutId && t.inId === transferInId);
+      if (exists) return prev;
+      return [...prev, {
+        id: Date.now(),
+        outId: transferOutId,
+        inId: transferInId,
+        outPlayer: outPlayer.webName,
+        inPlayer: inPlayer.webName,
+        outPrice: outPlayer.now_cost,
+        inPrice: inPlayer.now_cost,
+        rating: transferRating,
+        insight: transferInsight,
+        timestamp: new Date().toLocaleString()
+      }];
+    });
+  };
+
+  const getWorstOwnedFor = (elementType) =>
+    managerPicks
+      .map((pick) => playerMap[pick.element])
+      .filter((p) => p && p.element_type === elementType)
+      .sort((a, b) => ((Number(a.points_per_game) || 0) + (Number(a.ep_next) || 0)) - ((Number(b.points_per_game) || 0) + (Number(b.ep_next) || 0)))[0];
 
   const getComparisonInsight = (playerA, playerB) => {
     if (!playerA || !playerB) return 'Pick two players to compare.';
@@ -1232,8 +1559,8 @@ export default function SquadRoom() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#37003c]">
           <div className="max-w-md w-full mx-4 p-8 rounded-3xl bg-gradient-to-br from-[#19001a] via-[#26002b] to-[#19001a] border border-purple-700 shadow-2xl text-center space-y-6">
             <div className="space-y-2">
-              <h1 className="text-3xl font-black tracking-tight text-white">FPL HELPER</h1>
-              <p className="text-[10px] text-[#00ff87] uppercase tracking-[0.25em] font-bold">by MEHASEK</p>
+               <h1 className="text-3xl font-black tracking-tight text-white">MIfpl</h1>
+               <p className="text-[10px] text-[#00ff87] uppercase tracking-[0.25em] font-bold">by hamza mehasek</p>
             </div>
             <p className="text-sm text-purple-200 leading-relaxed">
               Enter your FPL team ID to load your squad, fixtures, and AI-powered insights.
@@ -1251,13 +1578,13 @@ export default function SquadRoom() {
                 type="submit"
                 className="w-full bg-[#00ff87] text-[#37003c] font-black uppercase tracking-widest text-sm px-6 py-3 rounded-xl hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/25"
               >
-                Enter Squad Room
+                 Enter MIfpl
               </button>
             </form>
           </div>
         </div>
       )}
-      <div className="max-w-6xl w-full mx-auto p-4 sm:p-6 flex-1 flex flex-col">
+      <div className="max-w-6xl w-full mx-auto p-4 sm:p-6 flex-1 flex flex-col text-white">
         
         {/* Header Bar */}
         <div className="relative overflow-hidden bg-gradient-to-r from-[#19001a] via-[#26002b] to-[#19001a] border border-purple-800/80 pb-4 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-4 py-4 rounded-2xl shadow-[0_18px_40px_rgba(0,0,0,0.25)] ring-1 ring-white/5">
@@ -1267,8 +1594,8 @@ export default function SquadRoom() {
               FPL
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">FPL HELPER</h1>
-              <p className="text-[10px] text-[#00ff87] uppercase tracking-widest font-bold">by MEHASEK</p>
+               <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">MIfpl</h1>
+               <p className="text-[10px] text-[#00ff87] uppercase tracking-widest font-bold">by hamza mehasek</p>
             </div>
           </div>
 
@@ -1279,7 +1606,7 @@ export default function SquadRoom() {
                 onClick={() => setIsAiOpen(true)}
                 className="border border-emerald-500/40 bg-[#0d1a12] text-[#00ff87] font-bold text-[10px] uppercase tracking-[0.16em] px-3 py-1.5 rounded-full transition-all hover:scale-[1.02] hover:shadow-[0_0_18px_rgba(0,255,135,0.18)]"
               >
-                SquadAI
+                 MIfpl AI
               </button>
               <button
                 type="button"
@@ -1376,7 +1703,10 @@ export default function SquadRoom() {
           {gameweeks.map((gw) => (
             <button
               key={gw.id}
-              onClick={() => setSelectedGw(gw.id)}
+              onClick={() => {
+                gwChosenRef.current = true;
+                setSelectedGw(gw.id);
+              }}
               className={`px-3 py-1 text-xs font-bold uppercase rounded border transition-all whitespace-nowrap ${
                 selectedGw === gw.id
                   ? 'bg-[#00ff87] text-[#37003c] border-[#00ff87] shadow'
@@ -1477,56 +1807,45 @@ export default function SquadRoom() {
           <div className="space-y-6">
             {managerPicks.length === 0 ? (
               <div className="bg-[#26002b] border border-purple-800 rounded-xl p-12 text-center text-purple-300 text-xs uppercase tracking-widest">
-                Loading squad lineup and formation...
+                {picksLocked
+                  ? `GW ${selectedGw} lineup hasn't been published yet - it appears once the gameweek goes live`
+                  : 'Loading squad lineup and formation...'}
               </div>
             ) : (
-              <div className="rounded-3xl p-8 shadow-2xl relative overflow-hidden border border-emerald-400/50 animate-glow-pulse" style={{
-                background: `
-                  radial-gradient(circle at 50% 30%, rgba(0, 255, 135, 0.12), transparent 45%),
-                  radial-gradient(circle at 20% 80%, rgba(0, 200, 255, 0.08), transparent 40%),
-                  radial-gradient(circle at 80% 80%, rgba(255, 0, 128, 0.06), transparent 40%),
-                  linear-gradient(180deg, rgba(0, 40, 20, 0.97) 0%, rgba(0, 30, 15, 0.95) 50%, rgba(0, 20, 10, 1) 100%),
-                  linear-gradient(90deg, transparent 0%, transparent 49.5%, rgba(255,255,255,0.12) 49.5%, rgba(255,255,255,0.12) 50.5%, transparent 50.5%, transparent 100%),
-                  repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(255,255,255,0.03) 28px, rgba(255,255,255,0.03) 29px),
-                  repeating-linear-gradient(90deg, transparent, transparent 14.28%, rgba(255,255,255,0.04) 14.28%, rgba(255,255,255,0.04) 14.38%)`,
-                backgroundSize: 'cover, cover, cover, cover, cover, 100% 100%, 100% 100%'
-              }}>
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(0,255,135,0.1),_transparent_60%)]" />
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#00ff87] to-transparent opacity-60" />
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-40" />
-                <div className="relative z-10 flex justify-between items-center mb-8 text-[10px] uppercase tracking-[0.3em] text-emerald-100/90">
-                  <span className="font-bold">Formation 4-3-3</span>
-                  <span className="text-[#00ff87] font-bold">Manager plan</span>
-                </div>
+                <div className="rounded-3xl p-4 sm:p-5 shadow-2xl relative border border-emerald-400/50 animate-glow-pulse" style={{ background: 'linear-gradient(135deg, #1a0022 0%, #2e0040 50%, #1a0022 100)' }}>
+                  <div className="relative z-10 flex justify-between items-center mb-6 text-[10px] uppercase tracking-[0.3em] text-emerald-100/90">
+                    <span className="font-bold">Formation {startingDEF.length}-{startingMID.length}-{startingFWD.length}</span>
+                    <span className="text-[#00ff87] font-bold">Manager plan</span>
+                  </div>
 
-                <div className="relative z-10 space-y-6">
-                  <div className="relative">
-                    <div className="text-center text-[10px] uppercase font-black tracking-[0.3em] text-amber-300 mb-2 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]">GK</div>
-                    <div className="flex justify-center gap-3">{startingGK.map(pick => renderPlayerCard(pick))}</div>
-                  </div>
-                  <div className="relative">
-                    <div className="text-center text-[10px] uppercase font-black tracking-[0.3em] text-sky-300 mb-2 drop-shadow-[0_0_8px_rgba(56,189,248,0.6)]">DEF</div>
-                    <div className="flex justify-around gap-3">{startingDEF.map(pick => renderPlayerCard(pick))}</div>
-                  </div>
-                  <div className="relative">
-                    <div className="text-center text-[10px] uppercase font-black tracking-[0.3em] text-emerald-300 mb-2 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]">MID</div>
-                    <div className="flex justify-around gap-3">{startingMID.map(pick => renderPlayerCard(pick))}</div>
-                  </div>
-                  <div className="relative">
-                    <div className="text-center text-[10px] uppercase font-black tracking-[0.3em] text-rose-300 mb-2 drop-shadow-[0_0_8px_rgba(251,113,133,0.6)]">FWD</div>
-                    <div className="flex justify-around gap-3">{startingFWD.map(pick => renderPlayerCard(pick))}</div>
-                  </div>
-                </div>
+                        <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/5', backgroundColor: '#00a000', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
+                    <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                <div className="mt-12 pt-6 border-t border-white/10 relative z-10">
+                    <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2">
+                      <div className="flex justify-center gap-1 sm:gap-2">
+                        {startingGK.map(pick => renderPlayerCard(pick))}
+                      </div>
+                      <div className="flex justify-around gap-1 sm:gap-2">
+                        {startingDEF.map(pick => renderPlayerCard(pick))}
+                      </div>
+                      <div className="flex justify-around gap-1 sm:gap-2">
+                        {startingMID.map(pick => renderPlayerCard(pick))}
+                      </div>
+                      <div className="flex justify-around gap-1 sm:gap-2">
+                        {startingFWD.map(pick => renderPlayerCard(pick))}
+                      </div>
+                    </div>
+                  </div>
+
+                <div className="mt-12 pt-6 pb-8 border-t border-white/10 relative z-10">
                   <div className="flex items-center justify-center gap-2 mb-4">
                     <div className="h-px w-8 bg-gradient-to-r from-transparent to-purple-400/60" />
                     <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-purple-200">Substitutes Bench</p>
                     <div className="h-px w-8 bg-gradient-to-l from-transparent to-purple-400/60" />
                   </div>
-                  <div className="flex flex-wrap justify-center gap-3">
-                    {substitutes.map(pick => renderPlayerCard(pick, true))}
-                  </div>
+                   <div className="flex flex-wrap justify-center gap-2">
+                     {substitutes.map(pick => renderPlayerCard(pick, true))}
+                   </div>
                 </div>
 
               </div>
@@ -1539,7 +1858,9 @@ export default function SquadRoom() {
           <div className="space-y-6">
             {!playerMap || Object.keys(playerMap).length === 0 || !managerPicks || managerPicks.length === 0 ? (
               <div className="bg-[#26002b] border border-purple-800 rounded-xl p-6 shadow">
-                <p className="text-xs text-purple-300 text-center">Loading squad data...</p>
+                <p className="text-xs text-purple-300 text-center">
+                  {picksLocked ? `GW ${selectedGw} squad not published yet - it appears once the gameweek goes live` : 'Loading squad data...'}
+                </p>
               </div>
             ) : (
             <div className="bg-[#26002b] border border-purple-800 rounded-xl p-6 shadow space-y-4">
@@ -1627,109 +1948,122 @@ export default function SquadRoom() {
                           <p className="mt-3 text-[11px] text-purple-100 leading-relaxed">
                             Best made in <span className="text-[#00ff87] font-bold">GW {selectedGw + 1}</span> if you want to front-load value before the next set of big fixtures.
                           </p>
+                          {(() => {
+                            const outPlayer = getWorstOwnedFor(Number(player.element_type));
+                            if (!outPlayer) return null;
+                            return (
+                              <div className="mt-3 rounded-lg border border-rose-500/40 bg-rose-500/10 p-2.5">
+                                <p className="text-[9px] uppercase tracking-[0.18em] text-rose-300 font-bold">Transfer out</p>
+                                <div className="mt-1 flex items-center justify-between gap-2">
+                                  <PlayerNameButton player={outPlayer} className="text-xs" showTeam />
+                                  <span className="text-[10px] font-bold text-rose-200 shrink-0">£{outPlayer.now_cost}m</span>
+                                </div>
+                                <p className="mt-1 text-[10px] text-rose-200/90 leading-relaxed">
+                                  Lowest owned {getPositionCategory(outPlayer.element_type)} by form &amp; xP — nearest to a value-neutral swap.
+                                </p>
+                              </div>
+                            );
+                          })()}
                         </div>
                       );
                     })}
-                  </div>
-
-                   <div className="bg-[#19001a] border border-purple-900 rounded-xl p-4">
-                     <h4 className="text-xs font-bold uppercase text-purple-300 mb-3">Rate your own transfer</h4>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                       <div>
-                         <label className="text-[10px] uppercase tracking-[0.18em] text-purple-400 block mb-2">Transfer out</label>
-                         <select value={transferOutId} onChange={(e) => { setTransferOutId(Number(e.target.value)); setTransferInId(''); }} className="w-full bg-[#26002b] border border-purple-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
-                           {managerPicks
-                             .filter((pick) => playerMap[pick.element])
-                             .filter((pick) => pick.element !== transferInId)
-                             .map((pick) => (
-                               <option key={pick.element} value={pick.element}>{playerMap[pick.element]?.webName} ({getPositionCategory(playerMap[pick.element]?.element_type)})</option>
-                             ))}
-                         </select>
-                       </div>
-                       <div>
-                         <label className="text-[10px] uppercase tracking-[0.18em] text-purple-400 block mb-2">Transfer in</label>
-                         <select value={transferInId} onChange={(e) => setTransferInId(Number(e.target.value))} className="w-full bg-[#26002b] border border-purple-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
-                           {(() => {
-                             const outPlayer = playerMap[transferOutId];
-                             const samePositionPlayers = Object.values(playerMap).filter((player) => {
-                               if (!outPlayer) return true;
-                               return player.element_type === outPlayer.element_type;
-                             });
-                             return samePositionPlayers
-                               .filter((player) => !ownedPlayerIds.has(player.id))
-                               .filter((player) => player.id !== transferOutId)
-                               .map((player) => (
-                                 <option key={player.id} value={player.id}>{player.webName} ({getPositionCategory(player.element_type)}) • £{player.now_cost}m</option>
-                               ));
-                           })()}
-                         </select>
-                       </div>
-                     </div>
-                    <div className="flex items-center justify-between gap-3 rounded-xl border border-[#00ff87]/30 bg-[#00ff87]/10 p-3 mt-4">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-[0.2em] text-[#00ff87]">AI transfer rating</p>
-                        {transferRating ? <p className="text-2xl font-black text-white">{transferRating}/100</p> : <p className="text-xs text-purple-200">Choose both players and rate the move.</p>}
-                      </div>
-                       <div className="flex gap-2">
-                         <button
-                           type="button"
-                           onClick={() => {
-                             const outPlayer = playerMap[transferOutId];
-                             const inPlayer = playerMap[transferInId];
-                             if (!outPlayer || !inPlayer) return;
-                             const result = getTransferInsight(outPlayer, inPlayer);
-                             setTransferRating(result.rating);
-                             setTransferInsight(result.text);
-                           }}
-                           className="bg-[#00ff87] text-[#37003c] font-bold uppercase text-[10px] px-4 py-2 rounded-full"
-                         >
-                           Rate transfer
-                         </button>
-                         {transferRating && (
-                           <button
-                             type="button"
-                             onClick={() => {
-                               const outPlayer = playerMap[transferOutId];
-                               const inPlayer = playerMap[transferInId];
-                               if (!outPlayer || !inPlayer) return;
-                               const transferId = `${transferOutId}-${transferInId}`;
-                               setSavedTransferIds(prev => {
-                                 const next = new Set(prev);
-                                 next.add(transferId);
-                                 return next;
-                               });
-                               setSavedTransfers((prev) => {
-                                 const exists = prev.some(t => t.outId === transferOutId && t.inId === transferInId);
-                                 if (exists) return prev;
-                                 return [...prev, {
-                                   id: Date.now(),
-                                   outId: transferOutId,
-                                   inId: transferInId,
-                                   outPlayer: outPlayer.webName,
-                                   inPlayer: inPlayer.webName,
-                                   outPrice: outPlayer.now_cost,
-                                   inPrice: inPlayer.now_cost,
-                                   rating: transferRating,
-                                   insight: transferInsight,
-                                   timestamp: new Date().toLocaleString()
-                                 }];
-                               });
-                             }}
-                             className={`${savedTransferIds.has(`${transferOutId}-${transferInId}`) ? 'bg-emerald-600 cursor-default' : 'bg-purple-600 hover:bg-purple-500'} text-white font-bold uppercase text-[10px] px-4 py-2 rounded-full transition-colors`}
-                         >
-                           {savedTransferIds.has(`${transferOutId}-${transferInId}`) ? 'Transfer saved' : 'Save transfer'}
-                         </button>
-                         )}
-                       </div>
-                    </div>
-                    {transferInsight && (
-                      <div className="bg-[#26002b] border border-purple-900 rounded-xl p-4 text-sm text-purple-100 leading-relaxed mt-4 max-h-40 overflow-y-auto scrollbar-thin">
-                        {transferInsight}
-                      </div>
-                     )}
+</div>
                 </>
               ) : (
                 <div className="space-y-4">
+                  <div className="bg-[#19001a] border border-purple-900 rounded-xl p-4">
+                    <h4 className="text-xs font-bold uppercase tracking-widest text-[#00ff87]">Rate &amp; save a transfer</h4>
+                    <p className="text-[10px] text-purple-400 mt-1 mb-3">Search players by name to pick who you want to transfer out and in.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-[10px] uppercase tracking-[0.18em] text-purple-400 block mb-2">Transfer out</label>
+                        <input
+                          value={tOutSearch}
+                          onChange={(e) => setTOutSearch(e.target.value)}
+                          placeholder="Search your squad by name..."
+                          className="w-full bg-[#26002b] border border-purple-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
+                        />
+                        {tOutSearch.trim() && (
+                          <div className="mt-2 max-h-40 overflow-y-auto scrollbar-thin space-y-1">
+                            {(() => {
+                              const q = tOutSearch.trim().toLowerCase();
+                              const list = managerPicks
+                                .map((pick) => playerMap[pick.element])
+                                .filter((p) => p && p.id !== transferInId && `${p.webName} ${p.name}`.toLowerCase().includes(q))
+                                .sort((a, b) => (Number(b.ep_next || 0) - Number(a.ep_next || 0)))
+                                .slice(0, 12);
+                              return list.length ? list.map((p) => (
+                                <button key={p.id} type="button" onClick={() => { setTransferOutId(p.id); setTOutSearch(''); }} className="w-full flex items-center justify-between rounded-lg border border-purple-800 bg-[#26002b] px-3 py-1.5 text-left hover:border-[#00ff87] transition-colors">
+                                  <span className="text-sm font-bold text-white">{p.webName} <span className="text-[10px] font-normal text-purple-400">{getPositionCategory(p.element_type)} • {teamMap[p.team]?.short_name || 'TEAM'}</span></span>
+                                  <span className="text-[10px] text-purple-400">£{p.now_cost}m</span>
+                                </button>
+                              )) : <p className="text-xs text-purple-300">No owned player matched that name.</p>;
+                            })()}
+                          </div>
+                        )}
+                        {transferOutId && !tOutSearch.trim() && (
+                          <div className="mt-2 flex items-center justify-between rounded-lg border border-[#00ff87]/30 bg-[#00ff87]/10 px-3 py-1.5">
+                            <span className="text-sm font-bold text-white">{playerMap[transferOutId]?.webName}</span>
+                            <button type="button" onClick={() => setTransferOutId('')} className="text-[10px] font-bold uppercase text-rose-300 hover:text-rose-200">Clear</button>
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <label className="text-[10px] uppercase tracking-[0.18em] text-purple-400 block mb-2">Transfer in</label>
+                        <input
+                          value={tInSearch}
+                          onChange={(e) => setTInSearch(e.target.value)}
+                          placeholder="Search any player by name..."
+                          className="w-full bg-[#26002b] border border-purple-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
+                        />
+                        {tInSearch.trim() && (
+                          <div className="mt-2 max-h-40 overflow-y-auto scrollbar-thin space-y-1">
+                            {(() => {
+                              const q = tInSearch.trim().toLowerCase();
+                              const outPlayer = playerMap[transferOutId];
+                              const list = Object.values(playerMap)
+                                .filter((p) => p.id !== transferOutId && !ownedPlayerIds.has(p.id))
+                                .filter((p) => (outPlayer ? p.element_type === outPlayer.element_type : true))
+                                .filter((p) => `${p.webName} ${p.name}`.toLowerCase().includes(q))
+                                .sort((a, b) => (Number(b.ep_next || 0) - Number(a.ep_next || 0)))
+                                .slice(0, 12);
+                              return list.length ? list.map((p) => (
+                                <button key={p.id} type="button" onClick={() => { setTransferInId(p.id); setTInSearch(''); }} className="w-full flex items-center justify-between rounded-lg border border-purple-800 bg-[#26002b] px-3 py-1.5 text-left hover:border-[#00ff87] transition-colors">
+                                  <span className="text-sm font-bold text-white">{p.webName} <span className="text-[10px] font-normal text-purple-400">{getPositionCategory(p.element_type)} • {teamMap[p.team]?.short_name || 'TEAM'}</span></span>
+                                  <span className="text-[10px] text-purple-400">£{p.now_cost}m</span>
+                                </button>
+                              )) : <p className="text-xs text-purple-300">No player matched that name.</p>;
+                            })()}
+                          </div>
+                        )}
+                        {transferInId && !tInSearch.trim() && (
+                          <div className="mt-2 flex items-center justify-between rounded-lg border border-[#00ff87]/30 bg-[#00ff87]/10 px-3 py-1.5">
+                            <span className="text-sm font-bold text-white">{playerMap[transferInId]?.webName}</span>
+                            <button type="button" onClick={() => setTransferInId('')} className="text-[10px] font-bold uppercase text-rose-300 hover:text-rose-200">Clear</button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {transferOutId && transferInId && (
+                      <div className="flex items-center justify-between gap-3 rounded-xl border border-[#00ff87]/30 bg-[#00ff87]/10 p-3 mt-4">
+                        <div>
+                          <p className="text-[10px] uppercase tracking-[0.2em] text-[#00ff87]">AI transfer rating</p>
+                          {transferRating ? <p className="text-2xl font-black text-white">{transferRating}/100</p> : <p className="text-xs text-purple-200">Rate the move to see the factor breakdown.</p>}
+                        </div>
+                        <div className="flex gap-2">
+                          <button type="button" onClick={handleRateTransfer} className="bg-[#00ff87] text-[#37003c] font-bold uppercase text-[10px] px-4 py-2 rounded-full">Rate transfer</button>
+                          {transferRating && (
+                            <button type="button" onClick={handleSaveTransfer} className={`${savedTransferIds.has(`${transferOutId}-${transferInId}`) ? 'bg-emerald-600 cursor-default' : 'bg-purple-600 hover:bg-purple-500'} text-white font-bold uppercase text-[10px] px-4 py-2 rounded-full transition-colors`}>
+                              {savedTransferIds.has(`${transferOutId}-${transferInId}`) ? 'Transfer saved' : 'Save transfer'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {transferInsight && transferOutId && transferInId && (
+                      <div className="bg-[#26002b] border border-purple-900 rounded-xl p-4 text-sm text-purple-100 leading-relaxed mt-3 max-h-48 overflow-y-auto scrollbar-thin whitespace-pre-line">{transferInsight}</div>
+                    )}
+                  </div>
                   <h3 className="text-xs font-bold uppercase tracking-widest text-[#00ff87]">Saved Transfers</h3>
                   {savedTransfers.length === 0 ? (
                     <p className="text-xs text-purple-300 py-6 text-center">No saved transfers yet. Rate a transfer in the AI suggested tab and click Save transfer to add it here.</p>
@@ -1769,14 +2103,16 @@ export default function SquadRoom() {
                     )}
                   </div>
                 )}
-           </div>
-         )}
+            </div>
+          )}
+          </div>
+        )}
 
         {activeTab === 'compare' && (
           <div className="bg-[#26002b] border border-purple-800 rounded-xl p-6 shadow space-y-5">
             {!playerMap || Object.keys(playerMap).length === 0 ? (
               <p className="text-xs text-purple-300 text-center py-6">Loading player data...</p>
-            ) : (
+            ) : (<>
             <div className="flex items-center justify-between border-b border-purple-900 pb-3">
               <h3 className="text-xs font-bold uppercase tracking-widest text-[#00ff87]">Compare players</h3>
               <span className="text-[10px] text-purple-300">AI verdict</span>
@@ -1831,14 +2167,74 @@ export default function SquadRoom() {
             </div>
 
             {playerMap[compareAId] && playerMap[compareBId] && (() => {
-              const playerA = playerMap[compareAId];
+const playerA = playerMap[compareAId];
               const playerB = playerMap[compareBId];
-              const statsA = getPlayerSummaryStats(playerHistory);
-              const statsB = getPlayerSummaryStats(playerHistory);
               const nextThreeA = getExpectedPointsNextThree(playerA, [], fixtures.filter((fix) => fix.team_h === playerA.team || fix.team_a === playerA.team).slice(0, 3));
               const nextThreeB = getExpectedPointsNextThree(playerB, [], fixtures.filter((fix) => fix.team_h === playerB.team || fix.team_a === playerB.team).slice(0, 3));
               const ownedA = ownedPlayerIds.has(playerA.id);
               const ownedB = ownedPlayerIds.has(playerB.id);
+
+              const statusOf = (player) => {
+                if (player.status === 'i') return 'Injured';
+                if (player.status === 'd') return 'Doubtful';
+                if (player.status === 'u') return 'Unavailable';
+                if (player.status === 'a') return 'Available';
+                return '—';
+              };
+
+              const setPiecesOf = (player) => {
+                const roles = [];
+                if (Number(player.penalties_order) === 1) roles.push('Penalties');
+                if (Number(player.direct_freekicks_order) === 1) roles.push('Direct FK');
+                if (Number(player.corners_and_indirect_freekicks_order) === 1) roles.push('Corners');
+                return roles;
+              };
+
+              const chancePct = (player) => {
+                const raw = player.chance_of_playing_next_round;
+                if (raw !== null && raw !== undefined && Number.isFinite(Number(raw))) return `${Number(raw)}%`;
+                if (player.status === 'a') return '~100% (fit)';
+                if (player.status === 'i' || player.status === 'u') return '0%';
+                if (player.status === 'd') return '~50%';
+                return '—';
+              };
+
+              const formA = Number(playerA.form || 0);
+              const formB = Number(playerB.form || 0);
+              const ppgA = Number(playerA.points_per_game || 0);
+              const ppgB = Number(playerB.points_per_game || 0);
+              const totA = Number(playerA.total_points || 0);
+              const totB = Number(playerB.total_points || 0);
+              const xpA = Number(playerA.ep_next || 0);
+              const xpB = Number(playerB.ep_next || 0);
+              const xpTmA = Number(playerA.ep_this || 0);
+              const xpTmB = Number(playerB.ep_this || 0);
+              const ownA = Number(playerA.selected_by_percent || 0);
+              const ownB = Number(playerB.selected_by_percent || 0);
+              const priceA = Number(playerA.now_cost || 0);
+              const priceB = Number(playerB.now_cost || 0);
+              const valA = ppgA > 0 ? (ppgA / priceA).toFixed(2) : '—';
+              const valB = ppgB > 0 ? (ppgB / priceB).toFixed(2) : '—';
+
+              const pickBetter = (a, b) => (a > b ? 'A' : b > a ? 'B' : null);
+              const statRows = [
+                { label: 'Price', a: `£${priceA.toFixed(1)}m`, b: `£${priceB.toFixed(1)}m`, better: pickBetter(priceB, priceA) },
+                { label: 'Position', a: getPositionCategory(playerA.element_type), b: getPositionCategory(playerB.element_type) },
+                { label: 'Form (FPL)', a: formA.toFixed(1), b: formB.toFixed(1), better: pickBetter(formA, formB) },
+                { label: 'Points / Game', a: ppgA.toFixed(1), b: ppgB.toFixed(1), better: pickBetter(ppgA, ppgB) },
+                { label: 'Total Points', a: totA, b: totB, better: pickBetter(totA, totB) },
+                { label: 'xP (Next GW)', a: xpA.toFixed(1), b: xpB.toFixed(1), better: pickBetter(xpA, xpB) },
+                { label: 'xP (This GW)', a: xpTmA.toFixed(1), b: xpTmB.toFixed(1), better: pickBetter(xpTmA, xpTmB) },
+                { label: '3GW xP Total', a: Number(nextThreeA.total).toFixed(1), b: Number(nextThreeB.total).toFixed(1), better: pickBetter(nextThreeA.total, nextThreeB.total) },
+                { label: 'Chance of Playing', a: chancePct(playerA), b: chancePct(playerB) },
+                { label: 'Availability (FPL status)', a: statusOf(playerA), b: statusOf(playerB) },
+                { label: 'Ownership', a: `${ownA.toFixed(1)}%${ownedA ? ' • In squad' : ''}`, b: `${ownB.toFixed(1)}%${ownedB ? ' • In squad' : ''}` },
+                { label: 'Value / £m', a: valA, b: valB, better: valA === '—' || valB === '—' ? null : pickBetter(Number(valA), Number(valB)) },
+                { label: 'Set-Piece Roles', a: setPiecesOf(playerA).join(' • ') || '—', b: setPiecesOf(playerB).join(' • ') || '—' },
+              ];
+
+              const aWins = statRows.filter((r) => r.better === 'A').length;
+              const bWins = statRows.filter((r) => r.better === 'B').length;
 
               const fixtureCell = (player, nextThree) => (
                 <div className="flex flex-col gap-1">
@@ -1868,19 +2264,18 @@ export default function SquadRoom() {
                 );
               };
 
-              const statRows = [
-                { label: 'Price', a: `£${playerA.now_cost}m`, b: `£${playerB.now_cost}m` },
-                { label: 'Position', a: getPositionCategory(playerA.element_type), b: getPositionCategory(playerB.element_type) },
-                { label: 'Total Points', a: playerA.total_points, b: playerB.total_points },
-                { label: 'xP (Next)', a: Number(playerA.ep_next || 0).toFixed(1), b: Number(playerB.ep_next || 0).toFixed(1) },
-                { label: 'Chance of Playing', a: `${playerA.chance_of_playing_next_round ?? 100}%`, b: `${playerB.chance_of_playing_next_round ?? 100}%` },
-                { label: '3GW xP Total', a: nextThreeA.total, b: nextThreeB.total },
-                { label: 'Minutes (next 3)', a: `${(nextThreeA.total * 15).toFixed(0)} est.`, b: `${(nextThreeB.total * 15).toFixed(0)} est.` },
-                { label: 'Ownership', a: ownedA ? 'Owned' : 'Not in squad', b: ownedB ? 'Owned' : 'Not in squad' },
-              ];
-
               return (
                 <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-3 rounded-xl border border-purple-900 bg-[#19001a] px-4 py-3">
+                    <span className="text-[10px] uppercase tracking-[0.18em] text-purple-400 font-bold">Edge so far</span>
+                    <span className="text-xs font-black">
+                      <span className="text-[#00ff87]">{playerA.webName} {aWins}</span>
+                      <span className="text-purple-500 mx-2">–</span>
+                      <span className="text-rose-300">{bWins} {playerB.webName}</span>
+                    </span>
+                    <span className="text-[10px] text-purple-300">{aWins + bWins} categories scored</span>
+                  </div>
+
                   <div className="overflow-x-auto rounded-xl border border-purple-900">
                     <table className="w-full text-xs">
                       <thead>
@@ -1917,8 +2312,8 @@ export default function SquadRoom() {
                         {statRows.map((row, idx) => (
                           <tr key={idx} className="border-t border-purple-900/50 hover:bg-[#19001a]/80 transition-colors">
                             <td className="px-4 py-3 text-purple-400 font-bold">{row.label}</td>
-                            <td className="px-4 py-3 text-center font-bold text-white">{row.a}</td>
-                            <td className="px-4 py-3 text-center font-bold text-white">{row.b}</td>
+                            <td className={`px-4 py-3 text-center font-bold ${row.better === 'A' ? 'text-[#00ff87]' : row.better === 'B' ? 'text-rose-300' : 'text-white'}`}>{row.a}</td>
+                            <td className={`px-4 py-3 text-center font-bold ${row.better === 'B' ? 'text-[#00ff87]' : row.better === 'A' ? 'text-rose-300' : 'text-white'}`}>{row.b}</td>
                           </tr>
                         ))}
                         <tr className="border-t border-purple-900/50">
@@ -1991,6 +2386,7 @@ export default function SquadRoom() {
                 <p className="text-xs text-purple-300">Select two players above to compare their stats side by side.</p>
               </div>
             )}
+            </>)}
           </div>
         )}
 
@@ -2130,14 +2526,12 @@ export default function SquadRoom() {
                           View Table ➔
                         </span>
                       </div>
-                    ))}
+))}
                   </div>
                       )}
                    </div>
-                 </div>
-               </>
-               ) : (
-              <div className="bg-[#26002b] border border-purple-800 rounded-xl p-6 shadow space-y-6">
+                ) : (
+               <div className="bg-[#26002b] border border-purple-800 rounded-xl p-6 shadow space-y-6">
                 <div className="flex justify-between items-center border-b border-purple-900 pb-3">
                   <div>
                     <button onClick={() => setSelectedLeague(null)} className="text-xs text-[#00ff87] hover:underline font-bold mb-1 block">
@@ -2277,14 +2671,14 @@ export default function SquadRoom() {
 
         {/* PLAYER SLIDING DRAWER WITH OFFICIAL ACTION PHOTO */}
         {selectedPlayer && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex justify-end z-40 transition-opacity">
-                <div className="bg-[#26002b] border-l border-purple-600 h-full max-w-md w-full p-6 shadow-2xl relative text-white space-y-6 overflow-y-auto animate-slide-in-right">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex justify-end z-[60] transition-opacity" onClick={closePlayerModal}>
+                <div className={`bg-[#26002b] border-l border-purple-600 h-full max-w-md w-full p-6 shadow-2xl relative text-white space-y-6 overflow-y-auto ${playerModalClosing ? 'animate-slide-out-right' : 'animate-slide-in-right'}`} onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between items-center border-b border-purple-900 pb-4">
                 <span className="bg-[#00ff87] text-[#37003c] text-[10px] font-extrabold px-2 py-0.5 rounded uppercase">
                   {getPositionCategory(selectedPlayer.element_type)}
                 </span>
                 <button 
-                  onClick={() => setSelectedPlayer(null)}
+                  onClick={closePlayerModal}
                   className="text-purple-400 hover:text-white font-bold text-sm bg-purple-900/50 w-8 h-8 rounded-full flex items-center justify-center"
                 >
                   ✕
@@ -2319,9 +2713,16 @@ export default function SquadRoom() {
               </button>
 
                {(() => {
-                 const fittedChance = Number(selectedPlayer.chance_of_playing_next_round);
-                 const chanceOfPlaying = Number.isFinite(fittedChance) ? fittedChance : 100;
-                 const chanceOfInjury = 100 - chanceOfPlaying;
+                 const rawChance = selectedPlayer.chance_of_playing_next_round;
+                 const hasChance = rawChance !== null && rawChance !== undefined && Number.isFinite(Number(rawChance));
+                 const fittedChance = hasChance ? Number(rawChance) : null;
+                 const statusCode = selectedPlayer.status;
+                 const newsText = (selectedPlayer.news || '').trim();
+                 const derivedChance = !hasChance ? (statusCode === 'a' ? 100 : statusCode === 'i' || statusCode === 'u' ? 0 : statusCode === 'd' ? 50 : null) : null;
+                 const effectiveChance = fittedChance !== null ? fittedChance : derivedChance;
+                 const chanceIsDerived = fittedChance === null && derivedChance !== null;
+                 const chanceOfPlaying = effectiveChance;
+                 const chanceOfInjury = effectiveChance !== null ? 100 - effectiveChance : null;
                  const playerOwned = managerPicks.some((pick) => pick.element === selectedPlayer.id);
                  const recentMinutes = playerHistory.slice(-5).reduce((sum, item) => sum + Number(item.minutes || 0), 0);
                  const recentAverage = playerHistory.length
@@ -2329,34 +2730,43 @@ export default function SquadRoom() {
                    : '0.0';
 
                  let injuryDetail = null;
-                 if (!Number.isFinite(fittedChance)) {
-                   injuryDetail = { type: 'Unknown', duration: 'No data from FPL' };
-                 } else if (fittedChance < 100 && fittedChance >= 75) {
-                   injuryDetail = { type: 'Minor knock / fatigue', duration: 'Likely 1-2 weeks' };
-                 } else if (fittedChance >= 50 && fittedChance < 75) {
-                   injuryDetail = { type: 'Moderate injury concern', duration: 'Approx 2-4 weeks' };
-                 } else if (fittedChance >= 25 && fittedChance < 50) {
-                   injuryDetail = { type: 'Significant injury', duration: '4-8 weeks' };
-                 } else if (fittedChance < 25 && fittedChance > 0) {
-                   injuryDetail = { type: 'Long-term absence', duration: '8+ weeks' };
+                 if (statusCode === 'i' || statusCode === 'd' || statusCode === 'u') {
+                   const label = statusCode === 'i' ? 'Injured' : statusCode === 'd' ? 'Doubtful' : 'Unavailable';
+                   injuryDetail = {
+                     type: `${label} (FPL)`,
+                     duration: newsText || (statusCode === 'i' ? 'Injured per FPL status' : statusCode === 'd' ? 'Fitness doubt for next gameweek' : 'Not available next round')
+                   };
+                 } else if (hasChance && fittedChance === 0) {
+                   injuryDetail = { type: 'Confirmed out', duration: newsText || '0% availability this round per FPL' };
+                 } else if (hasChance && fittedChance < 100 && fittedChance > 0) {
+                   if (fittedChance >= 75) {
+                     injuryDetail = { type: 'Minor knock / fatigue', duration: 'Likely 1-2 weeks' };
+                   } else if (fittedChance >= 50) {
+                     injuryDetail = { type: 'Moderate injury concern', duration: 'Approx 2-4 weeks' };
+                   } else if (fittedChance >= 25) {
+                     injuryDetail = { type: 'Significant injury', duration: '4-8 weeks' };
+                   } else {
+                     injuryDetail = { type: 'Long-term absence', duration: '8+ weeks' };
+                   }
+                 } else if (newsText) {
+                   injuryDetail = { type: 'FPL news', duration: newsText };
+                 } else if (statusCode === 'a' && !hasChance) {
+                   injuryDetail = { type: 'Available (FPL status)', duration: 'No availability number published yet, but FPL lists them as fit' };
+                 } else {
+                   injuryDetail = { type: 'Unknown', duration: 'No availability data from FPL yet' };
                  }
+                 const showInjuryNote = injuryDetail && !(statusCode === 'a' && hasChance && chanceOfPlaying === 100);
 
                  return (
                    <div className="grid grid-cols-2 gap-3">
-                     <div className="bg-[#19001a] border border-purple-900 p-3 rounded-lg">
-                       <p className="text-[10px] text-purple-400 uppercase">Chance of playing</p>
-                       <p className="text-lg font-black text-[#00ff87] mt-1">{chanceOfPlaying}%</p>
-                       {injuryDetail && fittedChance < 100 && (
-                         <p className="text-[9px] text-purple-300 mt-1 uppercase tracking-wider">{injuryDetail.type} • {injuryDetail.duration}</p>
-                       )}
-                     </div>
-                     <div className="bg-[#19001a] border border-purple-900 p-3 rounded-lg">
-                       <p className="text-[10px] text-purple-400 uppercase">Chance of injury</p>
-                       <p className="text-lg font-black text-rose-400 mt-1">{chanceOfInjury}%</p>
-                       {injuryDetail && fittedChance < 100 && (
-                         <p className="text-[9px] text-purple-300 mt-1 uppercase tracking-wider">FPL status: {fittedChance}% availability</p>
-                       )}
-                     </div>
+                      <div className="bg-[#19001a] border border-purple-900 p-3 rounded-lg">
+                        <p className="text-[10px] text-purple-400 uppercase">Chance of playing</p>
+                        <p className="text-lg font-black text-[#00ff87] mt-1">{effectiveChance !== null ? chanceOfPlaying + '%' : '—'}</p>
+                      </div>
+                      <div className="bg-[#19001a] border border-purple-900 p-3 rounded-lg">
+                        <p className="text-[10px] text-purple-400 uppercase">Chance of injury</p>
+                        <p className="text-lg font-black text-rose-400 mt-1">{effectiveChance !== null ? chanceOfInjury + '%' : '—'}</p>
+                      </div>
                     <div className="bg-[#19001a] border border-purple-900 p-3 rounded-lg">
                       <p className="text-[10px] text-purple-400 uppercase">Mins (last 5)</p>
                       <p className="text-lg font-black text-white mt-1">{recentMinutes}</p>
@@ -2474,7 +2884,7 @@ export default function SquadRoom() {
                 className="absolute top-4 right-4 text-purple-400 hover:text-white font-bold text-sm bg-purple-900/50 w-8 h-8 rounded-full flex items-center justify-center"
               >
                 ✕
-              </button>
+                </button>
 
               <div className="text-center space-y-2">
                 <span className="text-[10px] font-bold uppercase tracking-widest bg-[#00ff87] text-[#37003c] px-2 py-0.5 rounded">
@@ -2537,6 +2947,16 @@ export default function SquadRoom() {
                 </div>
               </div>
 
+              <div className="bg-[#19001a] border border-purple-900 p-4 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="bg-[#00ff87] text-[#37003c] text-[9px] font-black px-1.5 py-0.5 rounded">AI</span>
+                  <p className="text-[10px] font-bold uppercase text-[#00ff87] tracking-wider">AI Takeaway</p>
+                </div>
+                <p className="text-xs text-purple-100 leading-relaxed">
+                  {selectedFixture.aiTakeaway || 'Both sides come into this one with clear shape and a defined attacking identity. Watch team news nearer kickoff to confirm the key decisions before the game.'}
+                </p>
+              </div>
+
               {selectedFixture.finished && (
                 <div className="bg-purple-950/60 border border-purple-700/60 p-4 rounded-xl space-y-2">
                   <div className="flex items-center gap-2 mb-1">
@@ -2553,14 +2973,15 @@ export default function SquadRoom() {
             </div>
           </div>
         )}
+        </div>
 
         {/* FLOATING AI ASSISTANT BUTTON & DRAWER */}
-        <div className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
+        <div className="fixed bottom-4 right-4 z-[70] sm:bottom-6 sm:right-6">
           {!isAiOpen ? (
             <button
               onClick={() => setIsAiOpen(true)}
               className="bg-[#00ff87] hover:bg-emerald-400 text-[#37003c] p-3.5 sm:p-4 rounded-full shadow-[0_0_15px_rgba(0,255,135,0.4)] flex items-center justify-center font-black transition-transform hover:scale-110 border-2 border-white"
-              title="Open SquadAI Assistant"
+                  title="Open MIfpl AI Assistant"
             >
               🤖
             </button>
@@ -2572,7 +2993,7 @@ export default function SquadRoom() {
                 <div className="flex items-center gap-2">
                   <span className="bg-[#00ff87] text-[#37003c] text-xs font-black px-2 py-0.5 rounded">AI</span>
                   <div>
-                    <h3 className="text-xs font-black uppercase tracking-wider">SquadAI Assistant</h3>
+                     <h3 className="text-xs font-black uppercase tracking-wider">MIfpl AI Assistant</h3>
                     <p className="text-[9px] text-[#00ff87]">Screen-Aware Active</p>
                   </div>
                 </div>
@@ -2585,7 +3006,7 @@ export default function SquadRoom() {
               </div>
 
               {/* Chat Messages */}
-              <div className="flex-1 p-3 overflow-y-auto space-y-3 text-xs scrollbar-thin">
+              <div ref={aiChatContainerRef} className="flex-1 p-3 overflow-y-auto space-y-3 text-xs scrollbar-thin">
                 {aiMessages.map((msg, index) => (
                   <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[85%] rounded-xl p-3 ${
@@ -2612,7 +3033,7 @@ export default function SquadRoom() {
                     <button
                       key={chip}
                       type="button"
-                      onClick={() => setAiChatInput(chip)}
+                      onClick={() => submitAiMessage(chip)}
                       className="bg-[#26002b] border border-purple-700 text-[10px] uppercase tracking-wide text-purple-200 rounded-full px-2.5 py-1 hover:border-[#00ff87] hover:text-[#00ff87] transition-colors"
                     >
                       {chip}
@@ -2622,7 +3043,7 @@ export default function SquadRoom() {
               </div>
 
               {/* Chat Input */}
-              <form onSubmit={handleAiSubmit} className="p-3 bg-[#19001a] border-t border-purple-900 flex gap-2">
+              <form onSubmit={(e) => handleAiSubmit(e)} className="p-3 bg-[#19001a] border-t border-purple-900 flex gap-2">
                 <input 
                   type="text"
                   placeholder={selectedPlayer ? `Ask about ${selectedPlayer.webName}...` : "Ask AI anything about your squad..."}
@@ -2641,22 +3062,30 @@ export default function SquadRoom() {
           )}
         </div>
 
-      </div>
-
       {showManagerOverlay && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-2 sm:p-4" onClick={() => setShowManagerOverlay(false)}>
           <div className="w-full max-w-5xl max-h-[95vh] overflow-hidden bg-[#19001a] border border-purple-700 rounded-2xl shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-3 sm:p-4 border-b border-purple-900">
-              <div>
-                <h3 className="text-sm font-black uppercase tracking-widest text-white">{overlayTeamName || 'Manager Team'}</h3>
+            <div className="relative p-3 sm:p-4 border-b border-purple-900">
+              <div className="flex flex-col items-center text-center px-12 sm:px-16">
+                <h3 className="text-base sm:text-lg font-black uppercase tracking-widest text-white break-words">{overlayTeamName || 'Manager Team'}</h3>
                 {overlayManagerData && (
-                  <p className="text-[10px] text-purple-400">Overall rank: #{overlayManagerData.summary_overall_rank || '—'} • Total points: {overlayManagerData.summary_overall_points || 0}</p>
+                  <div className="flex flex-wrap justify-center gap-2 mt-2">
+                    <span className="text-[10px] sm:text-xs font-black px-3 py-1.5 rounded-lg bg-[#00ff87]/15 text-[#00ff87] border border-[#00ff87]/40">GW PTS {overlayManagerData.summary_event_points ?? 0}</span>
+                    <span className="text-[10px] sm:text-xs font-black px-3 py-1.5 rounded-lg bg-purple-500/15 text-purple-200 border border-purple-500/40">{overlayManagerData.summary_overall_points ?? 0} TOTAL</span>
+                    <span className="text-[10px] sm:text-xs font-black px-3 py-1.5 rounded-lg bg-purple-500/15 text-purple-200 border border-purple-500/40">RANK #{overlayManagerData.summary_overall_rank || '—'}</span>
+                    {overlayCaptain && (
+                      <span className="text-[10px] sm:text-xs font-black px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-200 border border-amber-500/40">CAP {playerMap[overlayCaptain.element]?.webName || '—'}</span>
+                    )}
+                    {overlayViceCaptain && (
+                      <span className="text-[10px] sm:text-xs font-black px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-200/80 border border-amber-500/30">VC {playerMap[overlayViceCaptain.element]?.webName || '—'}</span>
+                    )}
+                  </div>
                 )}
               </div>
               <button
                 type="button"
                 onClick={() => setShowManagerOverlay(false)}
-                className="text-purple-300 hover:text-white text-2xl font-bold leading-none px-2"
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 text-purple-300 hover:text-white text-2xl font-bold leading-none px-2"
               >
                 ×
               </button>
@@ -2664,65 +3093,55 @@ export default function SquadRoom() {
 
              {overlayManagerLoading ? (
                 <div className="p-8 text-center text-purple-300 text-xs uppercase tracking-widest">Loading team lineup...</div>
-             ) : (
-              <div className="p-3 sm:p-4 space-y-4 overflow-y-auto max-h-[calc(95vh-60px)]">
-                  {overlayManagerPicks.length === 0 ? (
-                    <p className="text-xs text-purple-300 text-center py-6">No picks available for this gameweek.</p>
-                  ) : (
-                    <div className="rounded-3xl p-6 shadow-2xl relative overflow-hidden border border-emerald-400/50 animate-glow-pulse" style={{
-                      background: `
-                        radial-gradient(circle at 50% 30%, rgba(0, 255, 135, 0.12), transparent 45%),
-                        radial-gradient(circle at 20% 80%, rgba(0, 200, 255, 0.08), transparent 40%),
-                        radial-gradient(circle at 80% 80%, rgba(255, 0, 128, 0.06), transparent 40%),
-                        linear-gradient(180deg, rgba(0, 40, 20, 0.97) 0%, rgba(0, 30, 15, 0.95) 50%, rgba(0, 20, 10, 1) 100%),
-                        linear-gradient(90deg, transparent 0%, transparent 49.5%, rgba(255,255,255,0.12) 49.5%, rgba(255,255,255,0.12) 50.5%, transparent 50.5%, transparent 100%),
-                        repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(255,255,255,0.03) 28px, rgba(255,255,255,0.03) 29px),
-                        repeating-linear-gradient(90deg, transparent, transparent 14.28%, rgba(255,255,255,0.04) 14.28%, rgba(255,255,255,0.04) 14.38%)`,
-                      backgroundSize: 'cover, cover, cover, cover, cover, 100% 100%, 100% 100%'
-                    }}>
-                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(0,255,135,0.1),_transparent_60%)]" />
-                      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#00ff87] to-transparent opacity-60" />
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-40" />
-                      <div className="relative z-10 flex justify-between items-center mb-8 text-[10px] uppercase tracking-[0.3em] text-emerald-100/90">
-                        <span className="font-bold">Formation {overlayGK.length}-{overlayDEF.length}-{overlayMID.length}-{overlayFWD.length}</span>
-                        <span className="text-[#00ff87] font-bold">Manager lineup</span>
-                      </div>
+              ) : (
+               <div className="p-3 sm:p-4 space-y-4 max-h-[calc(95vh-60px)] overflow-y-auto">
+                   {overlayManagerPicks.length === 0 ? (
+                     <p className="text-xs text-purple-300 text-center py-6">No picks available for this gameweek.</p>
+                   ) : (
+                     <div className="flex justify-center">
+                       <div className="rounded-3xl p-5 shadow-2xl relative border border-emerald-400/50 animate-glow-pulse w-full" style={{ background: 'linear-gradient(135deg, #1a0022 0%, #2e0040 50%, #1a0022 100)' }}>
+                       <div className="relative z-10 flex justify-between items-center mb-6 text-[10px] uppercase tracking-[0.3em] text-emerald-100/90">
+                          <span className="font-bold">Formation {overlayDEF.length}-{overlayMID.length}-{overlayFWD.length}</span>
+                         <span className="text-[#00ff87] font-bold">Manager lineup</span>
+                       </div>
 
-                      <div className="relative z-10 space-y-6">
-                        <div className="relative">
-                          <div className="text-center text-[10px] uppercase font-black tracking-[0.3em] text-amber-300 mb-2 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]">GK</div>
-                          <div className="flex justify-center gap-3">{overlayGK.map(pick => renderPlayerCard(pick))}</div>
-                        </div>
-                        <div className="relative">
-                          <div className="text-center text-[10px] uppercase font-black tracking-[0.3em] text-sky-300 mb-2 drop-shadow-[0_0_8px_rgba(56,189,248,0.6)]">DEF</div>
-                          <div className="flex justify-around gap-3">{overlayDEF.map(pick => renderPlayerCard(pick))}</div>
-                        </div>
-                        <div className="relative">
-                          <div className="text-center text-[10px] uppercase font-black tracking-[0.3em] text-emerald-300 mb-2 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]">MID</div>
-                          <div className="flex justify-around gap-3">{overlayMID.map(pick => renderPlayerCard(pick))}</div>
-                        </div>
-                        <div className="relative">
-                          <div className="text-center text-[10px] uppercase font-black tracking-[0.3em] text-rose-300 mb-2 drop-shadow-[0_0_8px_rgba(251,113,133,0.6)]">FWD</div>
-                          <div className="flex justify-around gap-3">{overlayFWD.map(pick => renderPlayerCard(pick))}</div>
-                        </div>
-                      </div>
+                   <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/5', backgroundColor: '#00a000', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
+                          <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                      <div className="mt-12 pt-6 border-t border-white/10 relative z-10">
+                           <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2">
+                             <div className="flex justify-center gap-1 sm:gap-2">
+                               {overlayGK.map(pick => renderPlayerCard(pick))}
+                             </div>
+                             <div className="flex justify-around gap-1 sm:gap-2">
+                               {overlayDEF.map(pick => renderPlayerCard(pick))}
+                             </div>
+                             <div className="flex justify-around gap-1 sm:gap-2">
+                               {overlayMID.map(pick => renderPlayerCard(pick))}
+                             </div>
+                             <div className="flex justify-around gap-1 sm:gap-2">
+                               {overlayFWD.map(pick => renderPlayerCard(pick))}
+                             </div>
+                           </div>
+                        </div>
+
+                <div className="mt-12 pt-6 pb-8 border-t border-white/10 relative z-10">
                         <div className="flex items-center justify-center gap-2 mb-4">
                           <div className="h-px w-8 bg-gradient-to-r from-transparent to-purple-400/60" />
                           <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-purple-200">Substitutes Bench</p>
                           <div className="h-px w-8 bg-gradient-to-l from-transparent to-purple-400/60" />
                         </div>
-                        <div className="flex flex-wrap justify-center gap-3">
-                          {overlaySubstitutes.map(pick => renderPlayerCard(pick, true))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                          <div className="flex flex-wrap justify-center gap-2">
+                            {overlaySubstitutes.map(pick => renderPlayerCard(pick, true))}
+                          </div>
+                       </div>
+                     </div>
+                     </div>
+                   )}
                 </div>
               )}
-            </>
-            )}
+            </div>
+          </div>
+        )}
     </div>
   );
 
@@ -2733,22 +3152,50 @@ export default function SquadRoom() {
     const isGk = player.element_type === 1;
     const shirtUrl = getShirtImageUrl(pick.element, isGk);
 
-    const gwPoints = pick.stats?.total_points ?? null;
+    const pickGwPoints = pick.stats?.total_points;
+    const hasPickGwPoints = typeof pickGwPoints === 'number';
+    const gwPoints = playerGwPoints[selectedGw]?.[pick.element];
+    const hasGwPoints = hasPickGwPoints || typeof gwPoints === 'number';
+    const effectiveGwPoints = hasPickGwPoints ? pickGwPoints : gwPoints;
+    const minutes = pick.stats?.minutes;
     const seasonPoints = Number(player.total_points || 0);
-    const displayPoints = gwPoints !== null ? gwPoints : seasonPoints;
-    const effectivePoints = pick.multiplier * displayPoints;
-    const isSeasonFallback = gwPoints === null;
+    const xP = Number(player.ep_next || 0);
+
+    const playerFixture = fixtures.find(f => f.team_h === player.team || f.team_a === player.team);
+    const fixtureMinutes = Number(playerFixture?.minutes ?? 0);
+    const isLive = Boolean(playerFixture?.started) && !Boolean(playerFixture?.finished) && fixtureMinutes < 90;
+    const isFinished = Boolean(playerFixture?.finished) || fixtureMinutes >= 90;
+
+    let pointsValue;
+    let pointsLabel;
+
+    if (isLive) {
+      pointsValue = hasGwPoints ? effectiveGwPoints : seasonPoints;
+      pointsLabel = 'LIVE';
+    } else if (isFinished) {
+      pointsValue = hasGwPoints ? effectiveGwPoints : seasonPoints;
+      pointsLabel = null;
+    } else if (minutes === 0 || minutes === undefined) {
+      pointsValue = null;
+      pointsLabel = 'Yet to play';
+    } else {
+      pointsValue = hasGwPoints ? effectiveGwPoints : seasonPoints;
+      pointsLabel = null;
+    }
+
+    const effectivePoints = isBench
+      ? pointsValue ?? 'Yet to play'
+      : (pick.multiplier > 0 ? pick.multiplier : 1) * (typeof pointsValue === 'number' ? pointsValue : 0);
 
     return (
       <div
         key={pick.element}
         onClick={() => handleOpenPlayerModal(pick.element)}
-        className={`group relative rounded-2xl p-3 w-36 sm:w-40 md:w-44 text-center transition-all duration-300 cursor-pointer flex flex-col items-center ${
+        className={`group relative rounded-2xl p-2 sm:p-3 w-28 sm:w-32 md:w-36 text-center transition-all duration-300 cursor-pointer flex flex-col items-center ${
           isBench
-            ? 'bg-[#19001a]/80 border border-purple-800/60 opacity-90 hover:opacity-100'
+            ? 'bg-[#19001a]/80 border border-purple-800/60 opacity-90 hover:opacity-100 hover:z-50'
             : 'bg-[#19001a]/95 border border-purple-500/40 hover:border-[#00ff87]'
         } shadow-[0_20px_50px_rgba(0,0,0,0.6)] hover:-translate-y-2 hover:shadow-[0_30px_60px_rgba(0,255,135,0.25)]`}
-        style={{ transformStyle: 'preserve-3d', perspective: '1000px' }}
       >
         {pick.is_captain && (
           <span className="absolute -top-2 -right-2 bg-gradient-to-br from-yellow-300 to-amber-500 text-[#37003c] text-[10px] font-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(251,191,36,0.6)] z-20 border-2 border-[#37003c] animate-pulse">
@@ -2763,7 +3210,7 @@ export default function SquadRoom() {
 
         <div className="h-16 flex items-center justify-center my-1">
           {shirtUrl ? (
-            <img src={shirtUrl} alt="kit" className="h-14 object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)] group-hover:drop-shadow-[0_12px_20px_rgba(0,255,135,0.35)] transition-all duration-300" />
+            <img src={shirtUrl} alt="kit" loading="lazy" decoding="async" className="h-14 object-contain group-hover:drop-shadow-[0_12px_20px_rgba(0,255,135,0.35)] transition-transform duration-300" />
           ) : (
             <div className="w-12 h-12 rounded-full bg-purple-900"></div>
           )}
@@ -2773,14 +3220,23 @@ export default function SquadRoom() {
           <div className="text-sm font-extrabold text-white truncate px-1">
             {player.webName || player.name}
           </div>
-          <div className="text-[11px] text-emerald-400 font-mono mt-1 flex justify-center gap-1">
+          <div className="text-[11px] text-emerald-400 font-mono mt-1 flex justify-center gap-1 items-center flex-wrap">
             <span>£{player.now_cost}m</span>
             <span>•</span>
-            <span className="font-bold">{effectivePoints} pts</span>
+            {pointsLabel === 'LIVE' ? (
+              <span className="inline-flex items-center gap-1">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00ff87] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00ff87]"></span>
+                </span>
+                <span className="text-[9px] font-bold">LIVE</span>
+              </span>
+            ) : pointsLabel === 'Yet to play' ? (
+              <span className="text-amber-300">Yet to play</span>
+            ) : (
+              <span>{effectivePoints}</span>
+            )}
           </div>
-          {isSeasonFallback && (
-            <div className="text-[9px] text-purple-400 mt-0.5 uppercase tracking-wider">Season total</div>
-          )}
         </div>
       </div>
     );

@@ -94,6 +94,17 @@ body {
   }
 }
 
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+}
+
 .animate-float-soft {
   animation: floatSoft 5s ease-in-out infinite;
 }
@@ -104,4 +115,8 @@ body {
 
 .animate-slide-in-right {
   animation: slideInRight 0.28s ease-out;
+}
+
+.animate-slide-out-right {
+  animation: slideOutRight 0.28s ease-out;
 }
