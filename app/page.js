@@ -1271,7 +1271,7 @@ export default function SquadRoom() {
     if (!player) return '';
     const teamCode = teamShirtMap[player.team] || 1;
     const kitType = isGoalkeeper ? '_1' : '';
-    return `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${teamCode}${kitType}-66.png`;
+    return `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${teamCode}${kitType}-128.png`;
   };
 
   const getPlayerPhotoUrl = (photoCode) => {
@@ -1867,28 +1867,63 @@ export default function SquadRoom() {
                </div>
              ) : (
                  <div className="rounded-3xl p-4 sm:p-5 shadow-2xl relative border border-emerald-400/50 animate-glow-pulse" style={{ background: 'linear-gradient(135deg, #1a0022 0%, #2e0040 50%, #1a0022 100)' }}>
-                   <div className="relative z-10 flex justify-between items-center mb-6 text-[10px] uppercase tracking-[0.3em] text-emerald-100/90">
-                     <span className="font-bold">Formation {startingDEF.length}-{startingMID.length}-{startingFWD.length}</span>
-                     <span className="text-[#00ff87] font-bold">Manager plan</span>
-                   </div>
+                    <div className="relative z-10 flex justify-between items-center mb-6 text-[10px] uppercase tracking-[0.3em] text-emerald-100/90">
+                      <span className="font-bold">Formation {startingDEF.length}-{startingMID.length}-{startingFWD.length}</span>
+                      <span className="text-[#00ff87] font-bold">Manager plan</span>
+                    </div>
+
+                    {(() => {
+                      const allPicks = [...startingGK, ...startingDEF, ...startingMID, ...startingFWD];
+                      const totalPoints = allPicks.reduce((sum, pick) => {
+                        const raw = playerGwPoints[selectedGw]?.[pick.element] ?? pick.stats?.total_points ?? 0;
+                        return sum + (pick.multiplier > 0 ? pick.multiplier : 1) * (typeof raw === 'number' ? raw : 0);
+                      }, 0);
+                      const avgPoints = allPicks.length ? (totalPoints / allPicks.length).toFixed(1) : '0.0';
+                      const highestPick = allPicks.slice().sort((a, b) => {
+                        const aPts = (playerGwPoints[selectedGw]?.[a.element] ?? a.stats?.total_points ?? 0) * ((a.multiplier > 0 ? a.multiplier : 1));
+                        const bPts = (playerGwPoints[selectedGw]?.[b.element] ?? b.stats?.total_points ?? 0) * ((b.multiplier > 0 ? b.multiplier : 1));
+                        return bPts - aPts;
+                      })[0];
+                      const highestPlayer = highestPick ? playerMap[highestPick.element] : null;
+                      return (
+                        <div className="mb-4 grid grid-cols-3 gap-2">
+                          <div className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center">
+                            <div className="text-[9px] uppercase tracking-widest text-purple-300">GW Total</div>
+                            <div className="text-sm font-black text-white">{totalPoints}</div>
+                          </div>
+                          <div className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center">
+                            <div className="text-[9px] uppercase tracking-widest text-purple-300">Average</div>
+                            <div className="text-sm font-black text-[#00ff87]">{avgPoints}</div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => highestPick && handleOpenPlayerModal(highestPick.element)}
+                            className="rounded-xl border border-[#00ff87]/40 bg-[#00ff87]/10 p-2 text-center hover:bg-[#00ff87]/20 transition-colors"
+                          >
+                            <div className="text-[9px] uppercase tracking-widest text-[#00ff87]">Top Scorer</div>
+                            <div className="text-sm font-black text-white truncate">{highestPlayer?.webName || '—'}</div>
+                          </button>
+                        </div>
+                      );
+                    })()}
 
                        <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/6', transform: 'perspective(800px) rotateX(12deg)', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
                              <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                                  <div className="absolute inset-0 flex flex-col justify-between py-6 sm:py-10 px-0.5 sm:px-2" style={{ transform: 'perspective(800px) rotateX(-12deg)' }}>
-                                  <div className="flex justify-center gap-0.5 sm:gap-2 mt-4 sm:mt-14">
-                                    {startingGK.map(pick => renderPlayerCard(pick))}
-                                  </div>
-                                  <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-4">
-                                    {startingDEF.map(pick => renderPlayerCard(pick))}
-                                  </div>
-                                  <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-4">
-                                    {startingMID.map(pick => renderPlayerCard(pick))}
-                                  </div>
-                                  <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-3">
-                                    {startingFWD.map(pick => renderPlayerCard(pick))}
-                                  </div>
-                                  <div className="h-4 sm:h-8"></div>
+                                   <div className="absolute inset-0 flex flex-col justify-between py-6 sm:py-10 px-0.5 sm:px-2" style={{ transform: 'perspective(800px) rotateX(-12deg)' }}>
+                                   <div className="flex justify-center gap-0.5 sm:gap-2 mt-5 sm:mt-14">
+                                     {startingGK.map(pick => renderPlayerCard(pick))}
+                                   </div>
+                                   <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-4">
+                                     {startingDEF.map(pick => renderPlayerCard(pick))}
+                                   </div>
+                                   <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-4">
+                                     {startingMID.map(pick => renderPlayerCard(pick))}
+                                   </div>
+                                   <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-3">
+                                     {startingFWD.map(pick => renderPlayerCard(pick))}
+                                   </div>
+                                   <div className="h-4 sm:h-8"></div>
                             </div>
                           </div>
 
@@ -3230,28 +3265,63 @@ export default function SquadRoom() {
                     ) : (
                        <div className="flex justify-center">
                        <div className="rounded-3xl p-5 shadow-2xl relative border border-emerald-400/50 animate-glow-pulse w-full" style={{ background: 'linear-gradient(135deg, #1a0022 0%, #2e0040 50%, #1a0022 100)' }}>
-                        <div className="relative z-10 flex justify-between items-center mb-6 text-[10px] uppercase tracking-[0.3em] text-emerald-100/90">
-                           <span className="font-bold">Formation {overlayDEF.length}-{overlayMID.length}-{overlayFWD.length}</span>
-                          <span className="text-[#00ff87] font-bold">Manager lineup</span>
-                        </div>
+                         <div className="relative z-10 flex justify-between items-center mb-6 text-[10px] uppercase tracking-[0.3em] text-emerald-100/90">
+                            <span className="font-bold">Formation {overlayDEF.length}-{overlayMID.length}-{overlayFWD.length}</span>
+                           <span className="text-[#00ff87] font-bold">Manager lineup</span>
+                         </div>
+
+                         {(() => {
+                           const allPicks = [...overlayGK, ...overlayDEF, ...overlayMID, ...overlayFWD];
+                           const totalPoints = allPicks.reduce((sum, pick) => {
+                             const raw = playerGwPoints[selectedGw]?.[pick.element] ?? pick.stats?.total_points ?? 0;
+                             return sum + (pick.multiplier > 0 ? pick.multiplier : 1) * (typeof raw === 'number' ? raw : 0);
+                           }, 0);
+                           const avgPoints = allPicks.length ? (totalPoints / allPicks.length).toFixed(1) : '0.0';
+                           const highestPick = allPicks.slice().sort((a, b) => {
+                             const aPts = (playerGwPoints[selectedGw]?.[a.element] ?? a.stats?.total_points ?? 0) * ((a.multiplier > 0 ? a.multiplier : 1));
+                             const bPts = (playerGwPoints[selectedGw]?.[b.element] ?? b.stats?.total_points ?? 0) * ((b.multiplier > 0 ? b.multiplier : 1));
+                             return bPts - aPts;
+                           })[0];
+                           const highestPlayer = highestPick ? playerMap[highestPick.element] : null;
+                           return (
+                             <div className="mb-4 grid grid-cols-3 gap-2">
+                               <div className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center">
+                                 <div className="text-[9px] uppercase tracking-widest text-purple-300">GW Total</div>
+                                 <div className="text-sm font-black text-white">{totalPoints}</div>
+                               </div>
+                               <div className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center">
+                                 <div className="text-[9px] uppercase tracking-widest text-purple-300">Average</div>
+                                 <div className="text-sm font-black text-[#00ff87]">{avgPoints}</div>
+                               </div>
+                               <button
+                                 type="button"
+                                 onClick={() => highestPick && handleOpenPlayerModal(highestPick.element)}
+                                 className="rounded-xl border border-[#00ff87]/40 bg-[#00ff87]/10 p-2 text-center hover:bg-[#00ff87]/20 transition-colors"
+                               >
+                                 <div className="text-[9px] uppercase tracking-widest text-[#00ff87]">Top Scorer</div>
+                                 <div className="text-sm font-black text-white truncate">{highestPlayer?.webName || '—'}</div>
+                               </button>
+                             </div>
+                           );
+                         })()}
 
                        <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/6', transform: 'perspective(800px) rotateX(12deg)', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
                              <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                                    <div className="absolute inset-0 flex flex-col justify-between py-6 sm:py-10 px-0.5 sm:px-2" style={{ transform: 'perspective(800px) rotateX(-12deg)' }}>
-                                    <div className="flex justify-center gap-0.5 sm:gap-2 mt-4 sm:mt-14">
-                                       {overlayGK.map(pick => renderPlayerCard(pick))}
-                                     </div>
-                                     <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-4">
-                                       {overlayDEF.map(pick => renderPlayerCard(pick))}
-                                     </div>
-                                     <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-4">
-                                       {overlayMID.map(pick => renderPlayerCard(pick))}
-                                     </div>
-                                     <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-3">
-                                       {overlayFWD.map(pick => renderPlayerCard(pick))}
-                                     </div>
-                                     <div className="h-4 sm:h-8"></div>
+                                     <div className="absolute inset-0 flex flex-col justify-between py-6 sm:py-10 px-0.5 sm:px-2" style={{ transform: 'perspective(800px) rotateX(-12deg)' }}>
+                                     <div className="flex justify-center gap-0.5 sm:gap-2 mt-5 sm:mt-14">
+                                        {overlayGK.map(pick => renderPlayerCard(pick))}
+                                      </div>
+                                      <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-4">
+                                        {overlayDEF.map(pick => renderPlayerCard(pick))}
+                                      </div>
+                                      <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-4">
+                                        {overlayMID.map(pick => renderPlayerCard(pick))}
+                                      </div>
+                                      <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-3">
+                                        {overlayFWD.map(pick => renderPlayerCard(pick))}
+                                      </div>
+                                      <div className="h-4 sm:h-8"></div>
                                </div>
                            </div>
 
@@ -3289,17 +3359,15 @@ export default function SquadRoom() {
     const hasGwPoints = hasPickGwPoints || typeof gwPoints === 'number';
     const effectiveGwPoints = hasPickGwPoints ? pickGwPoints : gwPoints;
     const minutes = pick.stats?.minutes;
-    const seasonPoints = Number(player.total_points || 0);
-    const xP = Number(player.ep_next || 0);
+
+    const rawPoints = hasGwPoints ? effectiveGwPoints : null;
+    const hasPlayed = (minutes !== null && minutes !== undefined && minutes > 0) || rawPoints !== null;
+    const displayPoints = (pick.multiplier > 0 ? pick.multiplier : 1) * (typeof rawPoints === 'number' ? rawPoints : 0);
 
     const playerFixture = fixtures.find(f => f.team_h === player.team || f.team_a === player.team);
     const fixtureMinutes = Number(playerFixture?.minutes ?? 0);
     const isLive = Boolean(playerFixture?.started) && !Boolean(playerFixture?.finished) && fixtureMinutes < 90;
     const isFinished = Boolean(playerFixture?.finished) || fixtureMinutes >= 90;
-
-    const rawPoints = hasGwPoints ? effectiveGwPoints : null;
-    const hasPlayed = (minutes !== null && minutes !== undefined && minutes > 0) || rawPoints !== null;
-    const displayPoints = (pick.multiplier > 0 ? pick.multiplier : 1) * (typeof rawPoints === 'number' ? rawPoints : 0);
 
     const opponentShort = playerFixture
       ? teamMap[playerFixture.team_h === player.team ? playerFixture.team_a : playerFixture.team_h]?.short_name || 'OPP'
@@ -3345,11 +3413,6 @@ export default function SquadRoom() {
           <div className="text-[7px] sm:text-sm md:text-sm font-extrabold text-white truncate px-0.5">
             {player.webName || player.name}
           </div>
-          <div className="hidden sm:flex text-[11px] md:text-[11px] text-purple-200 font-mono mt-0.5 justify-center gap-1 items-center flex-wrap">
-            <span>£{(Number(player.now_cost) / 10).toFixed(1)}m</span>
-            <span className="text-purple-500">•</span>
-            <span className="text-[#00ff87] font-bold">{xP.toFixed(1)} xP</span>
-          </div>
           {isLive && hasPlayed && (
             <div className="mt-0.5 inline-flex items-center justify-center w-full bg-[#00ff87] text-[#37003c] text-[6px] sm:text-[10px] font-black rounded py-0.5 px-1 shadow-[0_0_8px_rgba(0,255,135,0.4)]">
               LIVE: {displayPoints} pts {fixtureMinutes > 0 ? `(${fixtureMinutes}')` : ''}
@@ -3366,7 +3429,7 @@ export default function SquadRoom() {
             </div>
           )}
           {opponentShort && homeAway && (
-            <div className={`sm:hidden mt-0.5 inline-flex items-center justify-center w-full ${diffColor} text-[7px] font-bold rounded py-0.5 px-1`}>
+            <div className={`mt-0.5 inline-flex items-center justify-center w-full ${diffColor} text-[6px] sm:text-[9px] font-bold rounded py-0.5 px-1`}>
               {opponentShort} ({homeAway})
             </div>
           )}
