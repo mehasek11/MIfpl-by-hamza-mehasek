@@ -1879,13 +1879,13 @@ export default function SquadRoom() {
                                   <div className="flex justify-center gap-0.5 sm:gap-2 mt-4 sm:mt-14">
                                     {startingGK.map(pick => renderPlayerCard(pick))}
                                   </div>
-                                  <div className="flex justify-around gap-0.5 sm:gap-2 mt-3 sm:mt-4">
+                                  <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-4">
                                     {startingDEF.map(pick => renderPlayerCard(pick))}
                                   </div>
-                                  <div className="flex justify-around gap-0.5 sm:gap-2 mt-3 sm:mt-4">
+                                  <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-4">
                                     {startingMID.map(pick => renderPlayerCard(pick))}
                                   </div>
-                                  <div className="flex justify-around gap-0.5 sm:gap-2 mt-3 sm:mt-3">
+                                  <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-3">
                                     {startingFWD.map(pick => renderPlayerCard(pick))}
                                   </div>
                                   <div className="h-4 sm:h-8"></div>
@@ -3242,13 +3242,13 @@ export default function SquadRoom() {
                                     <div className="flex justify-center gap-0.5 sm:gap-2 mt-4 sm:mt-14">
                                        {overlayGK.map(pick => renderPlayerCard(pick))}
                                      </div>
-                                     <div className="flex justify-around gap-0.5 sm:gap-2 mt-3 sm:mt-4">
+                                     <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-4">
                                        {overlayDEF.map(pick => renderPlayerCard(pick))}
                                      </div>
-                                     <div className="flex justify-around gap-0.5 sm:gap-2 mt-3 sm:mt-4">
+                                     <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-4">
                                        {overlayMID.map(pick => renderPlayerCard(pick))}
                                      </div>
-                                     <div className="flex justify-around gap-0.5 sm:gap-2 mt-3 sm:mt-3">
+                                     <div className="flex justify-around gap-0.5 sm:gap-2 mt-4 sm:mt-3">
                                        {overlayFWD.map(pick => renderPlayerCard(pick))}
                                      </div>
                                      <div className="h-4 sm:h-8"></div>
@@ -3298,7 +3298,7 @@ export default function SquadRoom() {
     const isFinished = Boolean(playerFixture?.finished) || fixtureMinutes >= 90;
 
     const rawPoints = hasGwPoints ? effectiveGwPoints : null;
-    const hasPlayed = (minutes !== null && minutes !== undefined && minutes > 0);
+    const hasPlayed = (minutes !== null && minutes !== undefined && minutes > 0) || rawPoints !== null;
     const displayPoints = (pick.multiplier > 0 ? pick.multiplier : 1) * (typeof rawPoints === 'number' ? rawPoints : 0);
 
     const opponentShort = playerFixture
