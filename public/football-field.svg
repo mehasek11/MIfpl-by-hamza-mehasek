@@ -9,38 +9,10 @@
   <rect width="700" height="1080" fill="url(#grass)"/>
   <rect width="700" height="1080" fill="#1a6b35" opacity="0.15"/>
 
-  <g fill="none" stroke="#ffffff" stroke-width="2.2" opacity="0.92">
+  <g fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.9">
     <rect x="30" y="15" width="640" height="1050" rx="1"/>
     <line x1="30" y1="540" x2="670" y2="540"/>
     <circle cx="350" cy="540" r="91.5"/>
     <circle cx="350" cy="540" r="3" fill="#ffffff" stroke="none"/>
-
-    <g id="top-penalty">
-      <rect x="138" y="15" width="424" height="165"/>
-      <rect x="237" y="15" width="226" height="55"/>
-      <circle cx="350" cy="110" r="3" fill="#ffffff" stroke="none"/>
-      <path d="M 287 180 A 91.5 91.5 0 0 0 413 180"/>
-    </g>
-
-    <g id="bottom-penalty">
-      <rect x="138" y="900" width="424" height="165"/>
-      <rect x="237" y="1010" width="226" height="55"/>
-      <circle cx="350" cy="970" r="3" fill="#ffffff" stroke="none"/>
-      <path d="M 287 900 A 91.5 91.5 0 0 1 413 900"/>
-    </g>
   </g>
-
-  <g fill="none" stroke="#ffffff" stroke-width="2.2" opacity="0.92">
-    <path d="M 30 17 a 3 3 0 0 1 3 -3"/>
-    <path d="M 667 15 a 3 3 0 0 1 3 3"/>
-    <path d="M 670 1063 a 3 3 0 0 1 -3 3"/>
-    <path d="M 33 1065 a 3 3 0 0 1 -3 -3"/>
-  </g>
-
-  <g fill="none" stroke="#ffffff" stroke-width="3" opacity="0.9">
-    <rect x="30" y="475" width="640" height="14" rx="1"/>
-    <rect x="30" y="591" width="640" height="14" rx="1"/>
-  </g>
-
-  <rect x="30" y="15" width="640" height="1050" fill="none" stroke="#ffffff" stroke-width="5" rx="2" opacity="0.85"/>
 </svg>
