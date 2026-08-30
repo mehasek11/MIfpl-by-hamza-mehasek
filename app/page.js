@@ -1743,23 +1743,49 @@ export default function SquadRoom() {
         </div>
 
         {/* Gameweek Selector */}
-        <div className="flex space-x-2 overflow-x-auto pb-4 scrollbar-thin mb-4">
-          {gameweeks.map((gw) => (
-            <button
-              key={gw.id}
-              onClick={() => {
+        <div className="flex items-center gap-2 mb-4">
+          <button
+            type="button"
+            onClick={() => {
+              const prev = gameweeks.find(g => g.id === selectedGw - 1);
+              if (prev) {
                 gwChosenRef.current = true;
-                setSelectedGw(gw.id);
-              }}
-              className={`px-3 py-1 text-xs font-bold uppercase rounded border transition-all whitespace-nowrap ${
-                selectedGw === gw.id
-                  ? 'bg-[#00ff87] text-[#37003c] border-[#00ff87] shadow'
-                  : 'bg-[#26002b] text-purple-200 border-purple-800 hover:bg-purple-900'
-              }`}
-            >
-              GW {gw.id} {gw.is_current ? '• LIVE' : ''}
-            </button>
-          ))}
+                setSelectedGw(prev.id);
+              }
+            }}
+            disabled={!gameweeks.some(g => g.id === selectedGw - 1)}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-purple-700 bg-[#26002b] text-purple-200 hover:bg-purple-900 disabled:opacity-30"
+          >
+            ‹
+          </button>
+          <select
+            value={selectedGw}
+            onChange={(e) => {
+              gwChosenRef.current = true;
+              setSelectedGw(Number(e.target.value));
+            }}
+            className="h-8 rounded-full border border-purple-700 bg-[#26002b] px-3 text-xs font-bold uppercase text-purple-200 outline-none focus:border-[#00ff87]"
+          >
+            {gameweeks.map((gw) => (
+              <option key={gw.id} value={gw.id}>
+                GW {gw.id} {gw.is_current ? '• LIVE' : ''}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => {
+              const next = gameweeks.find(g => g.id === selectedGw + 1);
+              if (next) {
+                gwChosenRef.current = true;
+                setSelectedGw(next.id);
+              }
+            }}
+            disabled={!gameweeks.some(g => g.id === selectedGw + 1)}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-purple-700 bg-[#26002b] text-purple-200 hover:bg-purple-900 disabled:opacity-30"
+          >
+            ›
+          </button>
         </div>
 
         {activeTab === 'dashboard' && (
