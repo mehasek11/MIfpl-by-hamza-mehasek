@@ -1876,16 +1876,16 @@ export default function SquadRoom() {
                              <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
                                   <div className="absolute inset-0 flex flex-col justify-between py-6 sm:py-10 px-0.5 sm:px-2" style={{ transform: 'perspective(800px) rotateX(-12deg)' }}>
-                                  <div className="flex justify-center gap-0.5 sm:gap-2 mt-4 sm:mt-12">
+                                  <div className="flex justify-center gap-0.5 sm:gap-2 mt-4 sm:mt-14">
                                     {startingGK.map(pick => renderPlayerCard(pick))}
                                   </div>
-                                  <div className="flex justify-around gap-0.5 sm:gap-2 mt-2 sm:mt-4">
+                                  <div className="flex justify-around gap-0.5 sm:gap-2 mt-3 sm:mt-4">
                                     {startingDEF.map(pick => renderPlayerCard(pick))}
                                   </div>
-                                  <div className="flex justify-around gap-0.5 sm:gap-2 mt-1 sm:mt-2">
+                                  <div className="flex justify-around gap-0.5 sm:gap-2 mt-3 sm:mt-4">
                                     {startingMID.map(pick => renderPlayerCard(pick))}
                                   </div>
-                                  <div className="flex justify-around gap-0.5 sm:gap-2 mt-1 sm:mt-3">
+                                  <div className="flex justify-around gap-0.5 sm:gap-2 mt-3 sm:mt-3">
                                     {startingFWD.map(pick => renderPlayerCard(pick))}
                                   </div>
                                   <div className="h-4 sm:h-8"></div>
@@ -3239,16 +3239,16 @@ export default function SquadRoom() {
                              <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
                                     <div className="absolute inset-0 flex flex-col justify-between py-6 sm:py-10 px-0.5 sm:px-2" style={{ transform: 'perspective(800px) rotateX(-12deg)' }}>
-                                    <div className="flex justify-center gap-0.5 sm:gap-2 mt-4 sm:mt-12">
+                                    <div className="flex justify-center gap-0.5 sm:gap-2 mt-4 sm:mt-14">
                                        {overlayGK.map(pick => renderPlayerCard(pick))}
                                      </div>
-                                     <div className="flex justify-around gap-0.5 sm:gap-2 mt-2 sm:mt-4">
+                                     <div className="flex justify-around gap-0.5 sm:gap-2 mt-3 sm:mt-4">
                                        {overlayDEF.map(pick => renderPlayerCard(pick))}
                                      </div>
-                                     <div className="flex justify-around gap-0.5 sm:gap-2 mt-1 sm:mt-2">
+                                     <div className="flex justify-around gap-0.5 sm:gap-2 mt-3 sm:mt-4">
                                        {overlayMID.map(pick => renderPlayerCard(pick))}
                                      </div>
-                                     <div className="flex justify-around gap-0.5 sm:gap-2 mt-1 sm:mt-3">
+                                     <div className="flex justify-around gap-0.5 sm:gap-2 mt-3 sm:mt-3">
                                        {overlayFWD.map(pick => renderPlayerCard(pick))}
                                      </div>
                                      <div className="h-4 sm:h-8"></div>
@@ -3366,7 +3366,7 @@ export default function SquadRoom() {
             </div>
           )}
           {opponentShort && homeAway && (
-            <div className={`hidden sm:inline-flex mt-0.5 items-center justify-center w-full ${diffColor} text-[8px] sm:text-[9px] font-bold rounded py-0.5 px-1`}>
+            <div className={`sm:hidden mt-0.5 inline-flex items-center justify-center w-full ${diffColor} text-[7px] font-bold rounded py-0.5 px-1`}>
               {opponentShort} ({homeAway})
             </div>
           )}
