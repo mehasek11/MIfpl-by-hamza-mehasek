@@ -1891,7 +1891,6 @@ export default function SquadRoom() {
                         const maxPts = Number(gwPointsMap[max.element] ?? max.stats?.total_points ?? 0);
                         return pts > maxPts ? pick : max;
                       }, allPicks[0]);
-                      const highestPlayer = highestPick ? playerMap[highestPick.element] : null;
                       return (
                         <div className="mb-4 grid grid-cols-3 gap-2">
                           <div className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center">
@@ -3373,8 +3372,8 @@ export default function SquadRoom() {
     const effectiveGwPoints = hasPickGwPoints ? pickGwPoints : gwPoints;
     const minutes = pick.stats?.minutes;
 
-    const rawPoints = hasGwPoints ? effectiveGwPoints : null;
-    const hasPlayed = Number(minutes) > 0 || rawPoints !== null;
+    const rawPoints = (isLive || isFinished) && hasGwPoints ? effectiveGwPoints : null;
+    const hasPlayed = isLive || isFinished;
     const displayPoints = (pick.multiplier > 0 ? pick.multiplier : 1) * (typeof rawPoints === 'number' ? rawPoints : 0);
 
     const playerFixture = fixtures.find(f => f.team_h === player.team || f.team_a === player.team);
@@ -3414,11 +3413,11 @@ export default function SquadRoom() {
           </span>
         )}
 
-        <div className="h-4 sm:h-16 md:h-16 flex items-center justify-center my-0.5">
+        <div className="h-5 sm:h-16 md:h-16 flex items-center justify-center my-0.5">
           {shirtUrl ? (
-            <img src={shirtUrl} alt="kit" loading="lazy" decoding="async" className="h-3 sm:h-14 md:h-14 object-contain group-hover:drop-shadow-[0_4px_10px_rgba(0,255,135,0.3)] transition-transform duration-300" />
+            <img src={shirtUrl} alt="kit" loading="lazy" decoding="async" className="h-4 sm:h-14 md:h-14 object-contain group-hover:drop-shadow-[0_4px_10px_rgba(0,255,135,0.3)] transition-transform duration-300" />
           ) : (
-            <div className="w-3 h-3 sm:w-12 sm:h-12 md:w-12 md:h-12 rounded-full bg-purple-900"></div>
+            <div className="w-4 h-4 sm:w-12 sm:h-12 md:w-12 md:h-12 rounded-full bg-purple-900"></div>
           )}
         </div>
 
