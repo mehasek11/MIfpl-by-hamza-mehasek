@@ -1286,9 +1286,10 @@ export default function SquadRoom() {
 
     const numericId = Number(cleaned);
     const teamInfo = teamMap[numericId] || Object.values(teamMap).find((team) => Number(team.code) === numericId);
-    const code = (teamInfo?.code ?? teamShirtMap[numericId] ?? cleaned).toUpperCase();
+    const raw = teamInfo?.code ?? teamShirtMap[numericId] ?? cleaned;
+    const code = typeof raw === 'string' ? raw.toUpperCase() : String(raw).toUpperCase();
 
-    return `https://resources.premierleague.com/premierleague/badges/${size}/${code}.png`;
+    return `https://resources.premierleague.com/premierleague/badges/t${code}.png`;
   };
 
   const formatLastUpdated = (value) => {
@@ -2896,8 +2897,8 @@ export default function SquadRoom() {
                   <p className="text-xs text-purple-400">Loading fixtures...</p>
                 ) : (
                   <div className="grid grid-cols-3 gap-2">
-                    {playerUpcoming.slice(0, 3).map((fix, idx) => (
-                      <div key={idx} className="bg-[#19001a] border border-purple-900 p-2.5 rounded text-center space-y-1.5 flex flex-col justify-center items-center">
+                     {playerUpcoming.slice(0, 3).map((fix) => (
+                       <div key={`${fix.team_h}-${fix.team_a}-${fix.event}`} className="bg-[#19001a] border border-purple-900 p-2.5 rounded text-center space-y-1.5 flex flex-col justify-center items-center">
                         <div className="flex items-center justify-center gap-1.5">
                           <img src={getTeamCrestUrl(fix.team_h === selectedPlayer.team ? fix.team_a : fix.team_h, 30)} className="w-5 h-5 object-contain" alt="opp crest" onError={(e) => { e.target.style.display = 'none'; }} />
                           <span className="text-[9px] font-bold uppercase text-purple-200">{fix.is_home ? 'H' : 'A'}</span>
@@ -2948,36 +2949,26 @@ export default function SquadRoom() {
                 ✕
                 </button>
 
-                <div className="text-center space-y-2">
-                  <span className="text-[10px] font-bold uppercase tracking-widest bg-[#00ff87] text-[#37003c] px-2 py-0.5 rounded">
-                    Match Center • Fixture Insight
-                  </span>
-                  <div className="flex justify-between items-center mt-4 px-2 gap-2">
-                    <div className="w-5/12 flex items-center justify-end gap-2">
-                      <div className="min-w-0 text-right">
-                        <p className="font-black text-sm truncate">{teamMap[selectedFixture.team_h]?.name}</p>
-                        <p className="text-[10px] text-purple-400 uppercase">{teamMap[selectedFixture.team_h]?.short_name}</p>
-                      </div>
-                      <div className="relative w-10 h-10 shrink-0">
-                        <img src={getTeamCrestUrl(selectedFixture.team_h, 52)} alt={teamMap[selectedFixture.team_h]?.name} className="w-10 h-10 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                        <div className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-white/90 pointer-events-none">{teamMap[selectedFixture.team_h]?.short_name || 'HOME'}</div>
-                      </div>
-                    </div>
-                    <div className="w-2/12 text-center font-mono text-xl font-black text-[#00ff87]">
-                      {getFixtureStatus(selectedFixture).isFinished || getFixtureStatus(selectedFixture).isLive ? `${selectedFixture.team_h_score}-${selectedFixture.team_a_score}` : 'VS'}
-                    </div>
-                    <div className="w-5/12 flex items-center justify-start gap-2">
-                      <div className="relative w-10 h-10 shrink-0">
-                        <img src={getTeamCrestUrl(selectedFixture.team_a, 52)} alt={teamMap[selectedFixture.team_a]?.name} className="w-10 h-10 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
-                        <div className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-white/90 pointer-events-none">{teamMap[selectedFixture.team_a]?.short_name || 'AWAY'}</div>
-                      </div>
-                      <div className="min-w-0 text-left">
-                        <p className="font-black text-sm truncate">{teamMap[selectedFixture.team_a]?.name}</p>
-                        <p className="text-[10px] text-purple-400 uppercase">{teamMap[selectedFixture.team_a]?.short_name}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+               <div className="text-center space-y-2">
+                 <span className="text-[10px] font-bold uppercase tracking-widest bg-[#00ff87] text-[#37003c] px-2 py-0.5 rounded">
+                   Match Center • Fixture Insight
+                 </span>
+                 <div className="flex justify-between items-center mt-4 px-2 gap-2">
+                   <div className="w-5/12 text-right space-y-2">
+                     <img src={getTeamCrestUrl(selectedFixture.team_h, 52)} alt={teamMap[selectedFixture.team_h]?.name} className="w-12 h-12 object-contain mx-auto md:ml-auto" onError={(e) => { e.target.style.display = 'none'; }} />
+                     <p className="font-black text-sm">{teamMap[selectedFixture.team_h]?.name}</p>
+                     <p className="text-[10px] text-purple-400 uppercase">{teamMap[selectedFixture.team_h]?.short_name}</p>
+                   </div>
+                   <div className="w-2/12 text-center font-mono text-xl font-black text-[#00ff87]">
+                     {getFixtureStatus(selectedFixture).isFinished || getFixtureStatus(selectedFixture).isLive ? `${selectedFixture.team_h_score}-${selectedFixture.team_a_score}` : 'VS'}
+                   </div>
+                   <div className="w-5/12 text-left space-y-2">
+                     <img src={getTeamCrestUrl(selectedFixture.team_a, 52)} alt={teamMap[selectedFixture.team_a]?.name} className="w-12 h-12 object-contain mx-auto md:mr-auto" onError={(e) => { e.target.style.display = 'none'; }} />
+                     <p className="font-black text-sm">{teamMap[selectedFixture.team_a]?.name}</p>
+                     <p className="text-[10px] text-purple-400 uppercase">{teamMap[selectedFixture.team_a]?.short_name}</p>
+                   </div>
+                 </div>
+               </div>
 
               <div className="space-y-3 bg-[#19001a] border border-purple-900 p-4 rounded-xl text-xs">
                 <div className="flex justify-between border-b border-purple-900 pb-2">
