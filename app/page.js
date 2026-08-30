@@ -1880,13 +1880,18 @@ export default function SquadRoom() {
                       }, 0);
                       const currentEvent = gameweeks.find(g => g.is_current || g.id === selectedGw);
                       const avgPoints = currentEvent?.average_entry_score ?? '—';
-                      const allPlayers = Object.values(playerMap);
-                      const highestGlobal = allPlayers.length
-                        ? allPlayers.reduce((max, p) => Math.max(max, Number(p.eventPoints || 0)), 0)
-                        : '—';
-                      const highestPlayer = allPlayers.length
-                        ? allPlayers.reduce((max, p) => Number(p.eventPoints || 0) > Number(max.eventPoints || 0) ? p : max)
-                        : null;
+                      const gwPointsMap = playerGwPoints[selectedGw] || {};
+                      const allPicks = [...startingGK, ...startingDEF, ...startingMID, ...startingFWD];
+                      const highestGlobal = allPicks.reduce((max, pick) => {
+                        const pts = Number(gwPointsMap[pick.element] ?? pick.stats?.total_points ?? 0);
+                        return Math.max(max, pts);
+                      }, 0);
+                      const highestPick = allPicks.reduce((max, pick) => {
+                        const pts = Number(gwPointsMap[pick.element] ?? pick.stats?.total_points ?? 0);
+                        const maxPts = Number(gwPointsMap[max.element] ?? max.stats?.total_points ?? 0);
+                        return pts > maxPts ? pick : max;
+                      }, allPicks[0]);
+                      const highestPlayer = highestPick ? playerMap[highestPick.element] : null;
                       return (
                         <div className="mb-4 grid grid-cols-3 gap-2">
                           <div className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center">
@@ -1899,7 +1904,7 @@ export default function SquadRoom() {
                           </div>
                           <button
                             type="button"
-                            onClick={() => highestPlayer && handleOpenPlayerModal(highestPlayer.id)}
+                            onClick={() => highestPick && handleOpenPlayerModal(highestPick.element)}
                             className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center hover:border-[#00ff87]/40 transition-colors"
                           >
                             <div className="text-[9px] uppercase tracking-widest text-purple-300">Highest</div>
@@ -3280,13 +3285,17 @@ export default function SquadRoom() {
                            }, 0);
                             const currentEvent = gameweeks.find(g => g.is_current || g.id === selectedGw);
                             const avgPoints = currentEvent?.average_entry_score ?? '—';
-                            const allPlayers = Object.values(playerMap);
-                            const highestGlobal = allPlayers.length
-                              ? allPlayers.reduce((max, p) => Math.max(max, Number(p.eventPoints || 0)), 0)
-                              : '—';
-                            const highestPlayer = allPlayers.length
-                              ? allPlayers.reduce((max, p) => Number(p.eventPoints || 0) > Number(max.eventPoints || 0) ? p : max)
-                              : null;
+                            const gwPointsMap = playerGwPoints[selectedGw] || {};
+                            const allPicks = [...overlayGK, ...overlayDEF, ...overlayMID, ...overlayFWD];
+                            const highestGlobal = allPicks.reduce((max, pick) => {
+                              const pts = Number(gwPointsMap[pick.element] ?? pick.stats?.total_points ?? 0);
+                              return Math.max(max, pts);
+                            }, 0);
+                            const highestPick = allPicks.reduce((max, pick) => {
+                              const pts = Number(gwPointsMap[pick.element] ?? pick.stats?.total_points ?? 0);
+                              const maxPts = Number(gwPointsMap[max.element] ?? max.stats?.total_points ?? 0);
+                              return pts > maxPts ? pick : max;
+                            }, allPicks[0]);
                             return (
                               <div className="mb-4 grid grid-cols-3 gap-2">
                                 <div className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center">
@@ -3299,7 +3308,7 @@ export default function SquadRoom() {
                                 </div>
                                 <button
                                   type="button"
-                                  onClick={() => highestPlayer && handleOpenPlayerModal(highestPlayer.id)}
+                                  onClick={() => highestPick && handleOpenPlayerModal(highestPick.element)}
                                   className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center hover:border-[#00ff87]/40 transition-colors"
                                 >
                                   <div className="text-[9px] uppercase tracking-widest text-purple-300">Highest</div>
