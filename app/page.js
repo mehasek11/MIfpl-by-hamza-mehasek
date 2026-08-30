@@ -1864,38 +1864,38 @@ export default function SquadRoom() {
                 Loading squad lineup and formation...
               </div>
             ) : (
-                <div className="rounded-3xl p-3 sm:p-5 shadow-2xl relative border border-emerald-400/50 animate-glow-pulse" style={{ background: 'linear-gradient(135deg, #1a0022 0%, #2e0040 50%, #1a0022 100)' }}>
-                  <div className="relative z-10 flex justify-between items-center mb-2 sm:mb-4 text-[10px] uppercase tracking-[0.2em] text-emerald-100/90">
+                <div className="rounded-3xl p-2 sm:p-4 shadow-2xl relative border border-emerald-400/50 animate-glow-pulse" style={{ background: 'linear-gradient(135deg, #1a0022 0%, #2e0040 50%, #1a0022 100)' }}>
+                  <div className="relative z-10 flex justify-between items-center mb-2 sm:mb-3 text-[10px] uppercase tracking-[0.2em] text-emerald-100/90">
                     <span className="font-bold">Formation {startingDEF.length}-{startingMID.length}-{startingFWD.length}</span>
                     <span className="text-[#00ff87] font-bold">Manager plan</span>
                   </div>
 
-                         <div className="relative w-full max-w-5xl sm:max-w-6xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '16/9', backgroundColor: '#00a000', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
+                         <div className="relative w-full mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/3', backgroundColor: '#00a000', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35)' }}>
                             <img src="/football-field.svg?v=2" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                      <div className="absolute inset-0 flex flex-col justify-between py-3 sm:py-4 px-2 sm:px-3">
-                        <div className="flex justify-center gap-3 sm:gap-4">
+                      <div className="absolute inset-0 flex flex-col justify-between py-2 px-1">
+                        <div className="flex justify-center gap-1.5 sm:gap-2">
                           {startingGK.map(pick => renderPlayerCard(pick))}
                         </div>
-                        <div className="flex justify-around gap-2 sm:gap-3">
+                        <div className="flex justify-around gap-1 sm:gap-2">
                           {startingDEF.map(pick => renderPlayerCard(pick))}
                         </div>
-                        <div className="flex justify-around gap-2 sm:gap-3">
+                        <div className="flex justify-around gap-1 sm:gap-2">
                           {startingMID.map(pick => renderPlayerCard(pick))}
                         </div>
-                        <div className="flex justify-around gap-2 sm:gap-3">
+                        <div className="flex justify-around gap-1 sm:gap-2">
                           {startingFWD.map(pick => renderPlayerCard(pick))}
                         </div>
                       </div>
                     </div>
 
-                <div className="mt-3 sm:mt-6 pt-3 sm:pt-5 pb-4 sm:pb-6 border-t border-white/10 relative z-10">
+                 <div className="mt-2 sm:mt-4 pt-2 sm:pt-4 pb-3 sm:pb-5 border-t border-white/10 relative z-10">
                   <div className="flex items-center justify-center gap-2 mb-2 sm:mb-3">
-                    <div className="h-px w-6 bg-gradient-to-r from-transparent to-purple-400/60" />
+                    <div className="h-px w-4 bg-gradient-to-r from-transparent to-purple-400/60" />
                     <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-purple-200">Substitutes Bench</p>
-                    <div className="h-px w-6 bg-gradient-to-l from-transparent to-purple-400/60" />
+                    <div className="h-px w-4 bg-gradient-to-l from-transparent to-purple-400/60" />
                   </div>
-                   <div className="grid grid-cols-4 gap-2 sm:gap-3 sm:flex sm:flex-wrap sm:justify-center">
+                   <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                      {substitutes.map(pick => renderPlayerCard(pick, true))}
                    </div>
                 </div>
@@ -3220,38 +3220,38 @@ export default function SquadRoom() {
                      <p className="text-xs text-purple-300 text-center py-6">No picks available for this gameweek.</p>
                    ) : (
                       <div className="flex justify-center">
-                        <div className="rounded-3xl p-3 sm:p-5 shadow-2xl relative border border-emerald-400/50 animate-glow-pulse w-full" style={{ background: 'linear-gradient(135deg, #1a0022 0%, #2e0040 50%, #1a0022 100)' }}>
-                        <div className="relative z-10 flex justify-between items-center mb-2 sm:mb-4 text-[10px] uppercase tracking-[0.2em] text-emerald-100/90">
+                      <div className="rounded-3xl p-2 sm:p-4 shadow-2xl relative border border-emerald-400/50 animate-glow-pulse w-full" style={{ background: 'linear-gradient(135deg, #1a0022 0%, #2e0040 50%, #1a0022 100)' }}>
+                        <div className="relative z-10 flex justify-between items-center mb-2 sm:mb-3 text-[10px] uppercase tracking-[0.2em] text-emerald-100/90">
                            <span className="font-bold">Formation {overlayDEF.length}-{overlayMID.length}-{overlayFWD.length}</span>
                           <span className="text-[#00ff87] font-bold">Manager lineup</span>
                         </div>
 
-                     <div className="relative w-full max-w-5xl sm:max-w-6xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '16/9', backgroundColor: '#00a000', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
+                     <div className="relative w-full mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/3', backgroundColor: '#00a000', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35)' }}>
                       <img src="/football-field.svg?v=2" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                             <div className="absolute inset-0 flex flex-col justify-between py-3 sm:py-4 px-2 sm:px-3">
-                               <div className="flex justify-center gap-3 sm:gap-4">
+                             <div className="absolute inset-0 flex flex-col justify-between py-2 px-1">
+                               <div className="flex justify-center gap-1.5 sm:gap-2">
                                  {overlayGK.map(pick => renderPlayerCard(pick))}
                                </div>
-                               <div className="flex justify-around gap-2 sm:gap-3">
+                               <div className="flex justify-around gap-1 sm:gap-2">
                                  {overlayDEF.map(pick => renderPlayerCard(pick))}
                                </div>
-                               <div className="flex justify-around gap-2 sm:gap-3">
+                               <div className="flex justify-around gap-1 sm:gap-2">
                                  {overlayMID.map(pick => renderPlayerCard(pick))}
                                </div>
-                               <div className="flex justify-around gap-2 sm:gap-3">
+                               <div className="flex justify-around gap-1 sm:gap-2">
                                  {overlayFWD.map(pick => renderPlayerCard(pick))}
                                </div>
                              </div>
                           </div>
 
-                 <div className="mt-3 sm:mt-6 pt-3 sm:pt-5 pb-4 sm:pb-6 border-t border-white/10 relative z-10">
+                 <div className="mt-2 sm:mt-4 pt-2 sm:pt-4 pb-3 sm:pb-5 border-t border-white/10 relative z-10">
                          <div className="flex items-center justify-center gap-2 mb-2 sm:mb-3">
-                           <div className="h-px w-6 bg-gradient-to-r from-transparent to-purple-400/60" />
+                           <div className="h-px w-4 bg-gradient-to-r from-transparent to-purple-400/60" />
                            <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-purple-200">Substitutes Bench</p>
-                           <div className="h-px w-6 bg-gradient-to-l from-transparent to-purple-400/60" />
+                           <div className="h-px w-4 bg-gradient-to-l from-transparent to-purple-400/60" />
                          </div>
-                           <div className="grid grid-cols-4 gap-2 sm:gap-3 sm:flex sm:flex-wrap sm:justify-center">
+                           <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                              {overlaySubstitutes.map(pick => renderPlayerCard(pick, true))}
                            </div>
                         </div>
@@ -3307,54 +3307,52 @@ export default function SquadRoom() {
       ? pointsValue ?? 'Yet to play'
       : (pick.multiplier > 0 ? pick.multiplier : 1) * (typeof pointsValue === 'number' ? pointsValue : 0);
 
-    const cardBase = `group relative rounded-lg border text-center transition-all duration-300 cursor-pointer flex flex-col items-center ${
-      isBench
-        ? 'bg-[#19001a]/80 border-purple-800/60 opacity-90 hover:opacity-100 hover:z-50'
-        : 'bg-[#19001a]/95 border-purple-500/40 hover:border-[#00ff87]'
-    } shadow-[0_6px_16px_rgba(0,0,0,0.45)] hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(0,255,135,0.18)]`;
-
     return (
       <div
         key={pick.element}
         onClick={() => handleOpenPlayerModal(pick.element)}
-        className={`${cardBase} w-28 h-32 sm:w-32 sm:h-36 md:w-36 md:h-40 p-2`}
+        className={`group relative rounded-lg border text-center transition-all duration-300 cursor-pointer flex flex-col items-center ${
+          isBench
+            ? 'bg-[#19001a]/80 border-purple-800/60 opacity-90 hover:opacity-100 hover:z-50'
+            : 'bg-[#19001a]/95 border-purple-500/40 hover:border-[#00ff87]'
+        } shadow-[0_4px_12px_rgba(0,0,0,0.4)] hover:-translate-y-1 hover:shadow-[0_8px_20px_rgba(0,255,135,0.15)] w-14 h-20 sm:w-16 sm:h-24 md:w-20 md:h-28 p-1`}
       >
         {pick.is_captain && (
-          <span className="absolute -top-1 -right-1 bg-gradient-to-br from-yellow-300 to-amber-500 text-[#37003c] text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-[0_0_6px_rgba(251,191,36,0.6)] z-20 border border-[#37003c] animate-pulse">
+          <span className="absolute -top-1 -right-1 bg-gradient-to-br from-yellow-300 to-amber-500 text-[#37003c] text-[7px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-[0_0_4px_rgba(251,191,36,0.6)] z-20 border border-[#37003c] animate-pulse">
             C
           </span>
         )}
         {pick.is_vice_captain && (
-          <span className="absolute -top-1 -right-1 bg-gradient-to-br from-gray-200 to-gray-400 text-[#37003c] text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-[0_0_6px_rgba(255,255,255,0.5)] z-20 border border-[#37003c]">
+          <span className="absolute -top-1 -right-1 bg-gradient-to-br from-gray-200 to-gray-400 text-[#37003c] text-[7px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-[0_0_4px_rgba(255,255,255,0.5)] z-20 border border-[#37003c]">
             V
           </span>
         )}
 
-        <div className="h-16 sm:h-20 md:h-24 flex items-center justify-center my-0.5">
+        <div className="h-8 sm:h-10 md:h-12 flex items-center justify-center my-0.5">
           {shirtUrl ? (
-            <img src={shirtUrl} alt="kit" loading="lazy" decoding="async" className="h-12 sm:h-14 md:h-16 object-contain group-hover:drop-shadow-[0_4px_10px_rgba(0,255,135,0.3)] transition-transform duration-300" />
+            <img src={shirtUrl} alt="kit" loading="lazy" decoding="async" className="h-6 sm:h-8 md:h-10 object-contain group-hover:drop-shadow-[0_2px_6px_rgba(0,255,135,0.3)] transition-transform duration-300" />
           ) : (
-            <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-purple-900"></div>
+            <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full bg-purple-900"></div>
           )}
         </div>
 
-        <div className="bg-[#26002b] w-full rounded-md p-1 mt-1 border border-purple-900 shadow-inner">
-          <div className="text-[11px] sm:text-xs font-extrabold text-white truncate px-0.5 whitespace-nowrap">
+        <div className="bg-[#26002b] w-full rounded px-0.5 py-0.5 mt-0.5 border border-purple-900 shadow-inner">
+          <div className="text-[9px] sm:text-[10px] font-extrabold text-white truncate px-0.5 whitespace-nowrap">
             {player.webName || player.name}
           </div>
-          <div className="text-[9px] sm:text-[10px] text-emerald-400 font-mono mt-0.5 flex justify-center gap-1 items-center flex-wrap">
+          <div className="text-[8px] sm:text-[9px] text-emerald-400 font-mono mt-0.5 flex justify-center gap-0.5 items-center flex-wrap leading-tight">
             <span>£{player.now_cost}m</span>
             <span>•</span>
             {pointsLabel === 'LIVE' ? (
-              <span className="inline-flex items-center gap-1">
-                <span className="relative flex h-1.5 w-1.5">
+              <span className="inline-flex items-center gap-0.5">
+                <span className="relative flex h-1 w-1">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00ff87] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#00ff87]"></span>
+                  <span className="relative inline-flex rounded-full h-1 w-1 bg-[#00ff87]"></span>
                 </span>
-                <span className="text-[8px] font-bold">LIVE</span>
+                <span className="text-[7px] font-bold">LIVE</span>
               </span>
             ) : pointsLabel === 'Yet to play' ? (
-              <span className="text-amber-300 text-[8px] whitespace-nowrap">Yet to play</span>
+              <span className="text-amber-300 text-[7px] whitespace-nowrap">Yet to play</span>
             ) : (
               <span>{effectivePoints}</span>
             )}
