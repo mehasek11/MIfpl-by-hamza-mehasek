@@ -1871,10 +1871,10 @@ export default function SquadRoom() {
                      <span className="text-[#00ff87] font-bold">Manager plan</span>
                    </div>
 
-                          <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/6', transform: 'perspective(800px) rotateX(12deg)', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
+                           <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/6', transform: 'perspective(800px) rotateX(12deg)', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
                       <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                      <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2">
+                      <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2" style={{ transform: 'perspective(800px) rotateX(-12deg)' }}>
                               <div className="flex justify-center gap-1 sm:gap-2">
                                 {startingGK.map(pick => renderPlayerCard(pick))}
                               </div>
@@ -3233,10 +3233,10 @@ export default function SquadRoom() {
                           <span className="text-[#00ff87] font-bold">Manager lineup</span>
                         </div>
 
-                      <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/6', transform: 'perspective(800px) rotateX(12deg)', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
-                            <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
+                       <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/6', transform: 'perspective(800px) rotateX(12deg)', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
+                             <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                             <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2">
+                              <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2" style={{ transform: 'perspective(800px) rotateX(-12deg)' }}>
                                <div className="flex justify-center gap-1 sm:gap-2">
                                  {overlayGK.map(pick => renderPlayerCard(pick))}
                                </div>
@@ -3295,6 +3295,8 @@ export default function SquadRoom() {
     const isFinished = Boolean(playerFixture?.finished) || fixtureMinutes >= 90;
 
     const rawPoints = hasGwPoints ? effectiveGwPoints : null;
+    const hasPlayed = rawPoints !== null || (minutes !== null && minutes !== undefined && minutes > 0);
+    const displayPoints = (pick.multiplier > 0 ? pick.multiplier : 1) * (typeof rawPoints === 'number' ? rawPoints : 0);
 
     const opponentShort = playerFixture
       ? teamMap[playerFixture.team_h === player.team ? playerFixture.team_a : playerFixture.team_h]?.short_name || 'OPP'
@@ -3345,17 +3347,17 @@ export default function SquadRoom() {
             <span className="text-purple-500">•</span>
             <span className="text-[#00ff87] font-bold">{xP.toFixed(1)} xP</span>
           </div>
-          {isLive && rawPoints !== null && rawPoints !== undefined && (
+          {isLive && hasPlayed && (
             <div className="mt-1 inline-flex items-center justify-center w-full bg-[#00ff87] text-[#37003c] text-[9px] sm:text-[10px] font-black rounded-md py-0.5 px-1 shadow-[0_0_8px_rgba(0,255,135,0.4)]">
-              LIVE: {rawPoints} pts {fixtureMinutes > 0 ? `(${fixtureMinutes}')` : ''}
+              LIVE: {displayPoints} pts {fixtureMinutes > 0 ? `(${fixtureMinutes}')` : ''}
             </div>
           )}
-          {isFinished && rawPoints !== null && rawPoints !== undefined && (
+          {isFinished && hasPlayed && (
             <div className="mt-1 inline-flex items-center justify-center w-full bg-white/10 text-white text-[9px] sm:text-[10px] font-black rounded-md py-0.5 px-1 border border-white/20">
-              {rawPoints} pts
+              {displayPoints} pts
             </div>
           )}
-          {!isLive && !isFinished && rawPoints === null && (
+          {!hasPlayed && (
             <div className="mt-1 inline-flex items-center justify-center w-full bg-amber-500/20 text-amber-300 text-[9px] sm:text-[10px] font-bold rounded-md py-0.5 px-1">
               Yet to play
             </div>
