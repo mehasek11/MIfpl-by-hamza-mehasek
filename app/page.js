@@ -1872,28 +1872,9 @@ export default function SquadRoom() {
                    </div>
 
                           <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/6', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
-                            <div className="absolute inset-0" style={{ background: 'repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(255,255,255,0.05) 14px, rgba(255,255,255,0.05) 28px), linear-gradient(180deg, #1a4d2e 0%, #256b35 50%, #1a4d2e 100%)' }} />
-                            <div className="absolute inset-0">
-                              <div className="absolute left-0 right-0 top-1/2 h-[2px] bg-white/90 -translate-y-1/2" />
-                              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[18%] aspect-square border-2 border-white/90 rounded-full" />
-                              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white/90 rounded-full" />
-                              <div className="absolute left-[29%] right-[29%] top-0 h-[16%] border-2 border-white/90 border-b-0" />
-                              <div className="absolute left-[29%] right-[29%] bottom-0 h-[16%] border-2 border-white/90 border-t-0" />
-                              <div className="absolute left-[39%] right-[39%] top-0 h-[6%] border-2 border-white/90 border-b-0" />
-                              <div className="absolute left-[39%] right-[39%] bottom-0 h-[6%] border-2 border-white/90 border-t-0" />
-                              <div className="absolute left-1/2 top-[11%] -translate-x-1/2 w-2.5 h-2.5 bg-white/90 rounded-full" />
-                              <div className="absolute left-1/2 bottom-[11%] -translate-x-1/2 w-2.5 h-2.5 bg-white/90 rounded-full" />
-                              <div className="absolute left-1/2 top-[18%] -translate-x-1/2 w-[38%] h-[19%] border-t-2 border-l-2 border-r-2 border-white/90 rounded-t-full" />
-                              <div className="absolute left-1/2 bottom-[18%] -translate-x-1/2 w-[38%] h-[19%] border-b-2 border-l-2 border-r-2 border-white/90 rounded-b-full" />
-                              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/90" />
-                              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/90" />
-                              <div className="absolute top-0 left-[4%] w-2.5 h-2.5 border-2 border-white/90 rounded-full" style={{ transform: 'translate(0, 50%)' }} />
-                              <div className="absolute top-0 right-[4%] w-2.5 h-2.5 border-2 border-white/90 rounded-full" style={{ transform: 'translate(0, 50%)' }} />
-                              <div className="absolute bottom-0 left-[4%] w-2.5 h-2.5 border-2 border-white/90 rounded-full" style={{ transform: 'translate(0, -50%)' }} />
-                              <div className="absolute bottom-0 right-[4%] w-2.5 h-2.5 border-2 border-white/90 rounded-full" style={{ transform: 'translate(0, -50%)' }} />
-                            </div>
+                      <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                            <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2">
+                      <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2">
                               <div className="flex justify-center gap-1 sm:gap-2">
                                 {startingGK.map(pick => renderPlayerCard(pick))}
                               </div>
@@ -3252,27 +3233,8 @@ export default function SquadRoom() {
                           <span className="text-[#00ff87] font-bold">Manager lineup</span>
                         </div>
 
-                     <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/6', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
-                            <div className="absolute inset-0" style={{ background: 'repeating-linear-gradient(0deg, transparent, transparent 14px, rgba(255,255,255,0.05) 14px, rgba(255,255,255,0.05) 28px), linear-gradient(180deg, #1a4d2e 0%, #256b35 50%, #1a4d2e 100%)' }} />
-                            <div className="absolute inset-0">
-                              <div className="absolute left-0 right-0 top-1/2 h-[2px] bg-white/90 -translate-y-1/2" />
-                              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[18%] aspect-square border-2 border-white/90 rounded-full" />
-                              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white/90 rounded-full" />
-                              <div className="absolute left-[29%] right-[29%] top-0 h-[16%] border-2 border-white/90 border-b-0" />
-                              <div className="absolute left-[29%] right-[29%] bottom-0 h-[16%] border-2 border-white/90 border-t-0" />
-                              <div className="absolute left-[39%] right-[39%] top-0 h-[6%] border-2 border-white/90 border-b-0" />
-                              <div className="absolute left-[39%] right-[39%] bottom-0 h-[6%] border-2 border-white/90 border-t-0" />
-                              <div className="absolute left-1/2 top-[11%] -translate-x-1/2 w-2.5 h-2.5 bg-white/90 rounded-full" />
-                              <div className="absolute left-1/2 bottom-[11%] -translate-x-1/2 w-2.5 h-2.5 bg-white/90 rounded-full" />
-                              <div className="absolute left-1/2 top-[18%] -translate-x-1/2 w-[38%] h-[19%] border-t-2 border-l-2 border-r-2 border-white/90 rounded-t-full" />
-                              <div className="absolute left-1/2 bottom-[18%] -translate-x-1/2 w-[38%] h-[19%] border-b-2 border-l-2 border-r-2 border-white/90 rounded-b-full" />
-                              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/90" />
-                              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/90" />
-                              <div className="absolute top-0 left-[4%] w-2.5 h-2.5 border-2 border-white/90 rounded-full" style={{ transform: 'translate(0, 50%)' }} />
-                              <div className="absolute top-0 right-[4%] w-2.5 h-2.5 border-2 border-white/90 rounded-full" style={{ transform: 'translate(0, 50%)' }} />
-                              <div className="absolute bottom-0 left-[4%] w-2.5 h-2.5 border-2 border-white/90 rounded-full" style={{ transform: 'translate(0, -50%)' }} />
-                              <div className="absolute bottom-0 right-[4%] w-2.5 h-2.5 border-2 border-white/90 rounded-full" style={{ transform: 'translate(0, -50%)' }} />
-                            </div>
+                      <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/6', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
+                            <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
                              <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2">
                                <div className="flex justify-center gap-1 sm:gap-2">
