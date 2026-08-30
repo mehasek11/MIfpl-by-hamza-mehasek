@@ -2681,32 +2681,38 @@ export default function SquadRoom() {
                         <span>Diff {difficultyLabel}</span>
                       </div>
 
-                      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                        <div className={`flex items-center gap-2 min-w-0 rounded-xl p-2 ${homeSideClass}`}>
-                          <img src={getTeamCrestUrl(f.team_h, 50)} alt={home} className="w-8 h-8 object-contain drop-shadow-md" onError={(e) => { e.target.style.display = 'none'; }} />
-                          <div className="min-w-0">
-                            <p className="text-[10px] text-purple-400 uppercase">Home</p>
-                            <span className="text-xs font-bold truncate block">{home}</span>
-                            <span className="text-[9px] text-purple-300">{homeShort}</span>
-                          </div>
-                        </div>
+                       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                         <div className={`flex items-center gap-2 min-w-0 rounded-xl p-2 ${homeSideClass}`}>
+                           <div className="relative w-8 h-8 shrink-0">
+                             <img src={getTeamCrestUrl(f.team_h, 50)} alt={home} className="w-8 h-8 object-contain drop-shadow-md" onError={(e) => { e.target.style.display = 'none'; }} />
+                             <div className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-white/90 pointer-events-none">{homeShort || 'HOME'}</div>
+                           </div>
+                           <div className="min-w-0">
+                             <p className="text-[10px] text-purple-400 uppercase">Home</p>
+                             <span className="text-xs font-bold truncate block">{home}</span>
+                             <span className="text-[9px] text-purple-300">{homeShort}</span>
+                           </div>
+                         </div>
 
-                        <div className="text-center min-w-[94px]">
-                          <span className="text-sm font-black font-mono bg-[#26002b] border border-purple-700 px-3 py-1.5 rounded-full text-[#00ff87] inline-block min-w-[78px]">
-                            {scoreText}
-                          </span>
-                          <p className="text-[9px] text-purple-400 mt-1 uppercase">Match Center</p>
-                        </div>
+                         <div className="text-center min-w-[94px]">
+                           <span className="text-sm font-black font-mono bg-[#26002b] border border-purple-700 px-3 py-1.5 rounded-full text-[#00ff87] inline-block min-w-[78px]">
+                             {scoreText}
+                           </span>
+                           <p className="text-[9px] text-purple-400 mt-1 uppercase">Match Center</p>
+                         </div>
 
-                        <div className={`flex items-center justify-end gap-2 min-w-0 rounded-xl p-2 text-right ${awaySideClass}`}>
-                          <div className="min-w-0">
-                            <p className="text-[10px] text-purple-400 uppercase">Away</p>
-                            <span className="text-xs font-bold truncate block">{away}</span>
-                            <span className="text-[9px] text-purple-300">{awayShort}</span>
-                          </div>
-                          <img src={getTeamCrestUrl(f.team_a, 50)} alt={away} className="w-8 h-8 object-contain drop-shadow-md" onError={(e) => { e.target.style.display = 'none'; }} />
-                        </div>
-                      </div>
+                         <div className={`flex items-center justify-end gap-2 min-w-0 rounded-xl p-2 text-right ${awaySideClass}`}>
+                           <div className="min-w-0">
+                             <p className="text-[10px] text-purple-400 uppercase">Away</p>
+                             <span className="text-xs font-bold truncate block">{away}</span>
+                             <span className="text-[9px] text-purple-300">{awayShort}</span>
+                           </div>
+                           <div className="relative w-8 h-8 shrink-0">
+                             <img src={getTeamCrestUrl(f.team_a, 50)} alt={away} className="w-8 h-8 object-contain drop-shadow-md" onError={(e) => { e.target.style.display = 'none'; }} />
+                             <div className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-white/90 pointer-events-none">{awayShort || 'AWAY'}</div>
+                           </div>
+                         </div>
+                       </div>
 
                       <div className="mt-4 rounded-xl border border-purple-900 bg-[#26002b]/80 p-2">
                         <p className="text-[9px] uppercase tracking-[0.18em] text-[#00ff87] font-bold">AI takeaway</p>
@@ -2942,26 +2948,32 @@ export default function SquadRoom() {
                 ✕
                 </button>
 
-              <div className="text-center space-y-2">
-                <span className="text-[10px] font-bold uppercase tracking-widest bg-[#00ff87] text-[#37003c] px-2 py-0.5 rounded">
-                  Match Center • Fixture Insight
-                </span>
-                <div className="flex justify-between items-center mt-4 px-2 gap-2">
-                  <div className="w-5/12 text-right space-y-2">
-                    <img src={getTeamCrestUrl(selectedFixture.team_h, 52)} alt={teamMap[selectedFixture.team_h]?.name} className="w-12 h-12 object-contain mx-auto md:ml-auto" onError={(e) => { e.target.style.display = 'none'; }} />
-                    <p className="font-black text-sm">{teamMap[selectedFixture.team_h]?.name}</p>
-                    <p className="text-[10px] text-purple-400 uppercase">{teamMap[selectedFixture.team_h]?.short_name}</p>
-                  </div>
-                  <div className="w-2/12 text-center font-mono text-xl font-black text-[#00ff87]">
-                    {getFixtureStatus(selectedFixture).isFinished || getFixtureStatus(selectedFixture).isLive ? `${selectedFixture.team_h_score}-${selectedFixture.team_a_score}` : 'VS'}
-                  </div>
-                  <div className="w-5/12 text-left space-y-2">
-                    <img src={getTeamCrestUrl(selectedFixture.team_a, 52)} alt={teamMap[selectedFixture.team_a]?.name} className="w-12 h-12 object-contain mx-auto md:mr-auto" onError={(e) => { e.target.style.display = 'none'; }} />
-                    <p className="font-black text-sm">{teamMap[selectedFixture.team_a]?.name}</p>
-                    <p className="text-[10px] text-purple-400 uppercase">{teamMap[selectedFixture.team_a]?.short_name}</p>
-                  </div>
-                </div>
-              </div>
+               <div className="text-center space-y-2">
+                 <span className="text-[10px] font-bold uppercase tracking-widest bg-[#00ff87] text-[#37003c] px-2 py-0.5 rounded">
+                   Match Center • Fixture Insight
+                 </span>
+                 <div className="flex justify-between items-center mt-4 px-2 gap-2">
+                   <div className="w-5/12 text-right space-y-2">
+                     <div className="relative w-12 h-12 mx-auto md:ml-auto">
+                       <img src={getTeamCrestUrl(selectedFixture.team_h, 52)} alt={teamMap[selectedFixture.team_h]?.name} className="w-12 h-12 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
+                       <div className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-white/90 pointer-events-none">{teamMap[selectedFixture.team_h]?.short_name || 'HOME'}</div>
+                     </div>
+                     <p className="font-black text-sm">{teamMap[selectedFixture.team_h]?.name}</p>
+                     <p className="text-[10px] text-purple-400 uppercase">{teamMap[selectedFixture.team_h]?.short_name}</p>
+                   </div>
+                   <div className="w-2/12 text-center font-mono text-xl font-black text-[#00ff87]">
+                     {getFixtureStatus(selectedFixture).isFinished || getFixtureStatus(selectedFixture).isLive ? `${selectedFixture.team_h_score}-${selectedFixture.team_a_score}` : 'VS'}
+                   </div>
+                   <div className="w-5/12 text-left space-y-2">
+                     <div className="relative w-12 h-12 mx-auto md:mr-auto">
+                       <img src={getTeamCrestUrl(selectedFixture.team_a, 52)} alt={teamMap[selectedFixture.team_a]?.name} className="w-12 h-12 object-contain" onError={(e) => { e.target.style.display = 'none'; }} />
+                       <div className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-white/90 pointer-events-none">{teamMap[selectedFixture.team_a]?.short_name || 'AWAY'}</div>
+                     </div>
+                     <p className="font-black text-sm">{teamMap[selectedFixture.team_a]?.name}</p>
+                     <p className="text-[10px] text-purple-400 uppercase">{teamMap[selectedFixture.team_a]?.short_name}</p>
+                   </div>
+                 </div>
+               </div>
 
               <div className="space-y-3 bg-[#19001a] border border-purple-900 p-4 rounded-xl text-xs">
                 <div className="flex justify-between border-b border-purple-900 pb-2">
