@@ -1880,10 +1880,13 @@ export default function SquadRoom() {
                       }, 0);
                       const currentEvent = gameweeks.find(g => g.is_current || g.id === selectedGw);
                       const avgPoints = currentEvent?.average_entry_score ?? '—';
-                      const highestGlobal = Object.values(playerMap).reduce((max, p) => {
-                        const pts = Number(p.event_points || 0);
-                        return pts > max ? pts : max;
-                      }, 0);
+                      const allPlayers = Object.values(playerMap);
+                      const highestGlobal = allPlayers.length
+                        ? allPlayers.reduce((max, p) => Math.max(max, Number(p.eventPoints || 0)), 0)
+                        : '—';
+                      const highestPlayer = allPlayers.length
+                        ? allPlayers.reduce((max, p) => Number(p.eventPoints || 0) > Number(max.eventPoints || 0) ? p : max)
+                        : null;
                       return (
                         <div className="mb-4 grid grid-cols-3 gap-2">
                           <div className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center">
@@ -1892,12 +1895,16 @@ export default function SquadRoom() {
                           </div>
                           <div className="rounded-xl border border-[#00ff87]/40 bg-[#00ff87]/15 p-2 text-center shadow-[0_0_12px_rgba(0,255,135,0.25)]">
                             <div className="text-[9px] uppercase tracking-widest text-[#00ff87]">My GW</div>
-                            <div className="text-2xl font-black text-white leading-none">{totalPoints}</div>
+                            <div className="text-3xl font-black text-white leading-none drop-shadow-[0_0_8px_rgba(0,255,135,0.6)]">{totalPoints}</div>
                           </div>
-                          <div className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center">
+                          <button
+                            type="button"
+                            onClick={() => highestPlayer && handleOpenPlayerModal(highestPlayer.id)}
+                            className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center hover:border-[#00ff87]/40 transition-colors"
+                          >
                             <div className="text-[9px] uppercase tracking-widest text-purple-300">Highest</div>
                             <div className="text-sm font-black text-white">{highestGlobal}</div>
-                          </div>
+                          </button>
                         </div>
                       );
                     })()}
@@ -3271,28 +3278,35 @@ export default function SquadRoom() {
                              const raw = playerGwPoints[selectedGw]?.[pick.element] ?? pick.stats?.total_points ?? 0;
                              return sum + (pick.multiplier > 0 ? pick.multiplier : 1) * (typeof raw === 'number' ? raw : 0);
                            }, 0);
-                           const currentEvent = gameweeks.find(g => g.is_current || g.id === selectedGw);
-                           const avgPoints = currentEvent?.average_entry_score ?? '—';
-                           const highestGlobal = Object.values(playerMap).reduce((max, p) => {
-                             const pts = Number(p.event_points || 0);
-                             return pts > max ? pts : max;
-                           }, 0);
-                           return (
-                             <div className="mb-4 grid grid-cols-3 gap-2">
-                               <div className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center">
-                                 <div className="text-[9px] uppercase tracking-widest text-purple-300">Avg GW</div>
-                                 <div className="text-sm font-black text-white">{avgPoints}</div>
-                               </div>
-                               <div className="rounded-xl border border-[#00ff87]/40 bg-[#00ff87]/15 p-2 text-center shadow-[0_0_12px_rgba(0,255,135,0.25)]">
-                                 <div className="text-[9px] uppercase tracking-widest text-[#00ff87]">My GW</div>
-                                 <div className="text-2xl font-black text-white leading-none">{totalPoints}</div>
-                               </div>
-                               <div className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center">
-                                 <div className="text-[9px] uppercase tracking-widest text-purple-300">Highest</div>
-                                 <div className="text-sm font-black text-white">{highestGlobal}</div>
-                               </div>
-                             </div>
-                           );
+                            const currentEvent = gameweeks.find(g => g.is_current || g.id === selectedGw);
+                            const avgPoints = currentEvent?.average_entry_score ?? '—';
+                            const allPlayers = Object.values(playerMap);
+                            const highestGlobal = allPlayers.length
+                              ? allPlayers.reduce((max, p) => Math.max(max, Number(p.eventPoints || 0)), 0)
+                              : '—';
+                            const highestPlayer = allPlayers.length
+                              ? allPlayers.reduce((max, p) => Number(p.eventPoints || 0) > Number(max.eventPoints || 0) ? p : max)
+                              : null;
+                            return (
+                              <div className="mb-4 grid grid-cols-3 gap-2">
+                                <div className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center">
+                                  <div className="text-[9px] uppercase tracking-widest text-purple-300">Avg GW</div>
+                                  <div className="text-sm font-black text-white">{avgPoints}</div>
+                                </div>
+                                <div className="rounded-xl border border-[#00ff87]/40 bg-[#00ff87]/15 p-2 text-center shadow-[0_0_12px_rgba(0,255,135,0.25)]">
+                                  <div className="text-[9px] uppercase tracking-widest text-[#00ff87]">My GW</div>
+                                  <div className="text-3xl font-black text-white leading-none drop-shadow-[0_0_8px_rgba(0,255,135,0.6)]">{totalPoints}</div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => highestPlayer && handleOpenPlayerModal(highestPlayer.id)}
+                                  className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center hover:border-[#00ff87]/40 transition-colors"
+                                >
+                                  <div className="text-[9px] uppercase tracking-widest text-purple-300">Highest</div>
+                                  <div className="text-sm font-black text-white">{highestGlobal}</div>
+                                </button>
+                              </div>
+                            );
                          })()}
 
                        <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/6', transform: 'perspective(800px) rotateX(12deg)', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
@@ -3351,7 +3365,7 @@ export default function SquadRoom() {
     const minutes = pick.stats?.minutes;
 
     const rawPoints = hasGwPoints ? effectiveGwPoints : null;
-    const hasPlayed = (minutes !== null && minutes !== undefined && minutes > 0) || rawPoints !== null;
+    const hasPlayed = Number(minutes) > 0 || rawPoints !== null;
     const displayPoints = (pick.multiplier > 0 ? pick.multiplier : 1) * (typeof rawPoints === 'number' ? rawPoints : 0);
 
     const playerFixture = fixtures.find(f => f.team_h === player.team || f.team_a === player.team);
