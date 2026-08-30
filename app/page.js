@@ -1874,29 +1874,29 @@ export default function SquadRoom() {
                        <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/6', transform: 'perspective(800px) rotateX(12deg)', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
                              <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                                <div className="absolute inset-0 flex flex-col justify-between py-8 sm:py-10 px-1 sm:px-2" style={{ transform: 'perspective(800px) rotateX(-12deg)' }}>
-                                 <div className="flex justify-center gap-1 sm:gap-2 mt-6">
-                                  {startingGK.map(pick => renderPlayerCard(pick))}
-                                </div>
-                                <div className="flex justify-around gap-1 sm:gap-2">
-                                  {startingDEF.map(pick => renderPlayerCard(pick))}
-                                </div>
-                                <div className="flex justify-around gap-1 sm:gap-2 mt-2">
-                                  {startingMID.map(pick => renderPlayerCard(pick))}
-                                </div>
-                                <div className="flex justify-around gap-1 sm:gap-2 mt-3">
-                                  {startingFWD.map(pick => renderPlayerCard(pick))}
-                                </div>
-                                <div className="h-8 sm:h-10"></div>
+                                 <div className="absolute inset-0 flex flex-col justify-between py-10 sm:py-12 px-1 sm:px-2" style={{ transform: 'perspective(800px) rotateX(-12deg)' }}>
+                                 <div className="flex justify-center gap-1 sm:gap-2 mt-8">
+                                   {startingGK.map(pick => renderPlayerCard(pick))}
+                                 </div>
+                                 <div className="flex justify-around gap-1 sm:gap-2 mt-4">
+                                   {startingDEF.map(pick => renderPlayerCard(pick))}
+                                 </div>
+                                 <div className="flex justify-around gap-1 sm:gap-2 mt-3">
+                                   {startingMID.map(pick => renderPlayerCard(pick))}
+                                 </div>
+                                 <div className="flex justify-around gap-1 sm:gap-2 mt-4">
+                                   {startingFWD.map(pick => renderPlayerCard(pick))}
+                                 </div>
+                                 <div className="h-8 sm:h-10"></div>
                             </div>
                           </div>
 
-                  <div className="mt-28 pt-8 pb-8 border-t border-white/10 relative z-10">
-                    <div className="flex items-center justify-center gap-2 mb-4">
-                      <div className="h-px w-8 bg-gradient-to-r from-transparent to-purple-400/60" />
-                      <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-purple-200">Substitutes Bench</p>
-                      <div className="h-px w-8 bg-gradient-to-l from-transparent to-purple-400/60" />
-                    </div>
+                   <div className="mt-32 pt-8 pb-8 border-t border-white/10 relative z-10">
+                     <div className="flex items-center justify-center gap-2 mb-4">
+                       <div className="h-px w-8 bg-gradient-to-r from-transparent to-purple-400/60" />
+                       <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-purple-200">Substitutes Bench</p>
+                       <div className="h-px w-8 bg-gradient-to-l from-transparent to-purple-400/60" />
+                     </div>
                     <div className="flex flex-wrap justify-center gap-2">
                       {substitutes.map(pick => renderPlayerCard(pick, true))}
                     </div>
@@ -3237,29 +3237,29 @@ export default function SquadRoom() {
                        <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/6', transform: 'perspective(800px) rotateX(12deg)', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
                              <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                                <div className="absolute inset-0 flex flex-col justify-between py-8 sm:py-10 px-1 sm:px-2" style={{ transform: 'perspective(800px) rotateX(-12deg)' }}>
-                                <div className="flex justify-center gap-1 sm:gap-2 mt-6">
-                                   {overlayGK.map(pick => renderPlayerCard(pick))}
-                                 </div>
-                                 <div className="flex justify-around gap-1 sm:gap-2">
-                                   {overlayDEF.map(pick => renderPlayerCard(pick))}
-                                 </div>
-                                 <div className="flex justify-around gap-1 sm:gap-2 mt-2">
-                                   {overlayMID.map(pick => renderPlayerCard(pick))}
-                                 </div>
-                                 <div className="flex justify-around gap-1 sm:gap-2 mt-3">
-                                   {overlayFWD.map(pick => renderPlayerCard(pick))}
-                                 </div>
-                                 <div className="h-8 sm:h-10"></div>
+                                 <div className="absolute inset-0 flex flex-col justify-between py-10 sm:py-12 px-1 sm:px-2" style={{ transform: 'perspective(800px) rotateX(-12deg)' }}>
+                                 <div className="flex justify-center gap-1 sm:gap-2 mt-8">
+                                    {overlayGK.map(pick => renderPlayerCard(pick))}
+                                  </div>
+                                  <div className="flex justify-around gap-1 sm:gap-2 mt-4">
+                                    {overlayDEF.map(pick => renderPlayerCard(pick))}
+                                  </div>
+                                  <div className="flex justify-around gap-1 sm:gap-2 mt-3">
+                                    {overlayMID.map(pick => renderPlayerCard(pick))}
+                                  </div>
+                                  <div className="flex justify-around gap-1 sm:gap-2 mt-4">
+                                    {overlayFWD.map(pick => renderPlayerCard(pick))}
+                                  </div>
+                                  <div className="h-8 sm:h-10"></div>
                                </div>
                            </div>
 
-                  <div className="mt-28 pt-8 pb-8 border-t border-white/10 relative z-10">
-                         <div className="flex items-center justify-center gap-2 mb-4">
-                           <div className="h-px w-8 bg-gradient-to-r from-transparent to-purple-400/60" />
-                           <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-purple-200">Substitutes Bench</p>
-                           <div className="h-px w-8 bg-gradient-to-l from-transparent to-purple-400/60" />
-                         </div>
+                   <div className="mt-32 pt-8 pb-8 border-t border-white/10 relative z-10">
+                          <div className="flex items-center justify-center gap-2 mb-4">
+                            <div className="h-px w-8 bg-gradient-to-r from-transparent to-purple-400/60" />
+                            <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-purple-200">Substitutes Bench</p>
+                            <div className="h-px w-8 bg-gradient-to-l from-transparent to-purple-400/60" />
+                          </div>
                            <div className="flex flex-wrap justify-center gap-2">
                              {overlaySubstitutes.map(pick => renderPlayerCard(pick, true))}
                            </div>
