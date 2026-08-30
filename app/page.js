@@ -1873,20 +1873,20 @@ export default function SquadRoom() {
                         <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '3/4', backgroundColor: '#00a000', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35), 0 0 15px rgba(0,0,0,0.35)' }}>
                            <img src="/football-field.svg?v=2" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                     <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2">
-                       <div className="flex justify-center gap-1.5 sm:gap-3">
-                         {startingGK.map(pick => renderPlayerCard(pick))}
-                       </div>
-                       <div className="flex justify-around gap-1 sm:gap-3">
-                         {startingDEF.map(pick => renderPlayerCard(pick))}
-                       </div>
-                       <div className="flex justify-around gap-1 sm:gap-3">
-                         {startingMID.map(pick => renderPlayerCard(pick))}
-                       </div>
-                       <div className="flex justify-around gap-1 sm:gap-3">
-                         {startingFWD.map(pick => renderPlayerCard(pick))}
-                       </div>
-                     </div>
+                      <div className="absolute inset-0 flex flex-col justify-between py-2 sm:py-3 px-1 sm:px-2">
+                        <div className="flex justify-center gap-2 sm:gap-3">
+                          {startingGK.map(pick => renderPlayerCard(pick))}
+                        </div>
+                        <div className="flex justify-around gap-2 sm:gap-3">
+                          {startingDEF.map(pick => renderPlayerCard(pick))}
+                        </div>
+                        <div className="flex justify-around gap-2 sm:gap-3">
+                          {startingMID.map(pick => renderPlayerCard(pick))}
+                        </div>
+                        <div className="flex justify-around gap-2 sm:gap-3">
+                          {startingFWD.map(pick => renderPlayerCard(pick))}
+                        </div>
+                      </div>
                    </div>
 
                 <div className="mt-3 sm:mt-6 pt-3 sm:pt-5 pb-4 sm:pb-6 border-t border-white/10 relative z-10">
@@ -1895,7 +1895,7 @@ export default function SquadRoom() {
                     <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-purple-200">Substitutes Bench</p>
                     <div className="h-px w-6 bg-gradient-to-l from-transparent to-purple-400/60" />
                   </div>
-                   <div className="grid grid-cols-4 gap-1.5 sm:gap-2 sm:flex sm:flex-wrap sm:justify-center">
+                   <div className="grid grid-cols-4 gap-2 sm:gap-3 sm:flex sm:flex-wrap sm:justify-center">
                      {substitutes.map(pick => renderPlayerCard(pick, true))}
                    </div>
                 </div>
@@ -3229,17 +3229,17 @@ export default function SquadRoom() {
                     <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '3/4', backgroundColor: '#00a000', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35), 0 0 15px rgba(0,0,0,0.35)' }}>
                      <img src="/football-field.svg?v=2" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                            <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2">
-                              <div className="flex justify-center gap-1.5 sm:gap-3">
+                            <div className="absolute inset-0 flex flex-col justify-between py-2 sm:py-3 px-1 sm:px-2">
+                              <div className="flex justify-center gap-2 sm:gap-3">
                                 {overlayGK.map(pick => renderPlayerCard(pick))}
                               </div>
-                              <div className="flex justify-around gap-1 sm:gap-3">
+                              <div className="flex justify-around gap-2 sm:gap-3">
                                 {overlayDEF.map(pick => renderPlayerCard(pick))}
                               </div>
-                              <div className="flex justify-around gap-1 sm:gap-3">
+                              <div className="flex justify-around gap-2 sm:gap-3">
                                 {overlayMID.map(pick => renderPlayerCard(pick))}
                               </div>
-                              <div className="flex justify-around gap-1 sm:gap-3">
+                              <div className="flex justify-around gap-2 sm:gap-3">
                                 {overlayFWD.map(pick => renderPlayerCard(pick))}
                               </div>
                             </div>
@@ -3251,7 +3251,7 @@ export default function SquadRoom() {
                            <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-purple-200">Substitutes Bench</p>
                            <div className="h-px w-6 bg-gradient-to-l from-transparent to-purple-400/60" />
                          </div>
-                           <div className="grid grid-cols-4 gap-1.5 sm:gap-2 sm:flex sm:flex-wrap sm:justify-center">
+                           <div className="grid grid-cols-4 gap-2 sm:gap-3 sm:flex sm:flex-wrap sm:justify-center">
                              {overlaySubstitutes.map(pick => renderPlayerCard(pick, true))}
                            </div>
                         </div>
@@ -3280,7 +3280,6 @@ export default function SquadRoom() {
     const effectiveGwPoints = hasPickGwPoints ? pickGwPoints : gwPoints;
     const minutes = pick.stats?.minutes;
     const seasonPoints = Number(player.total_points || 0);
-    const xP = Number(player.ep_next || 0);
 
     const playerFixture = fixtures.find(f => f.team_h === player.team || f.team_a === player.team);
     const fixtureMinutes = Number(playerFixture?.minutes ?? 0);
@@ -3308,15 +3307,17 @@ export default function SquadRoom() {
       ? pointsValue ?? 'Yet to play'
       : (pick.multiplier > 0 ? pick.multiplier : 1) * (typeof pointsValue === 'number' ? pointsValue : 0);
 
+    const cardBase = `group relative rounded-md border text-center transition-all duration-300 cursor-pointer flex flex-col items-center ${
+      isBench
+        ? 'bg-[#19001a]/80 border-purple-800/60 opacity-90 hover:opacity-100 hover:z-50'
+        : 'bg-[#19001a]/95 border-purple-500/40 hover:border-[#00ff87]'
+    } shadow-[0_6px_16px_rgba(0,0,0,0.45)] hover:-translate-y-1 hover:shadow-[0_10px_24px_rgba(0,255,135,0.18)]`;
+
     return (
       <div
         key={pick.element}
         onClick={() => handleOpenPlayerModal(pick.element)}
-        className={`group relative rounded-xl p-2 sm:p-2 w-24 sm:w-28 md:w-32 text-center transition-all duration-300 cursor-pointer flex flex-col items-center ${
-          isBench
-            ? 'bg-[#19001a]/80 border border-purple-800/60 opacity-90 hover:opacity-100 hover:z-50'
-            : 'bg-[#19001a]/95 border border-purple-500/40 hover:border-[#00ff87]'
-        } shadow-[0_10px_25px_rgba(0,0,0,0.5)] hover:-translate-y-1 hover:shadow-[0_14px_35px_rgba(0,255,135,0.2)]`}
+        className={`${cardBase} w-24 h-28 sm:w-28 sm:h-32 md:w-32 md:h-36 p-1.5 sm:p-2`}
       >
         {pick.is_captain && (
           <span className="absolute -top-1 -right-1 bg-gradient-to-br from-yellow-300 to-amber-500 text-[#37003c] text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-[0_0_6px_rgba(251,191,36,0.6)] z-20 border border-[#37003c] animate-pulse">
@@ -3329,16 +3330,16 @@ export default function SquadRoom() {
           </span>
         )}
 
-        <div className="h-10 sm:h-11 flex items-center justify-center my-0.5">
+        <div className="h-12 sm:h-14 md:h-16 flex items-center justify-center my-0.5">
           {shirtUrl ? (
-            <img src={shirtUrl} alt="kit" loading="lazy" decoding="async" className="h-8 sm:h-9 object-contain group-hover:drop-shadow-[0_4px_10px_rgba(0,255,135,0.3)] transition-transform duration-300" />
+            <img src={shirtUrl} alt="kit" loading="lazy" decoding="async" className="h-10 sm:h-12 md:h-14 object-contain group-hover:drop-shadow-[0_4px_10px_rgba(0,255,135,0.3)] transition-transform duration-300" />
           ) : (
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-purple-900"></div>
+            <div className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-purple-900"></div>
           )}
         </div>
 
-        <div className="bg-[#26002b] w-full rounded-lg p-1.5 mt-1 border border-purple-900 shadow-inner">
-          <div className="text-[11px] sm:text-xs font-extrabold text-white truncate px-0.5">
+        <div className="bg-[#26002b] w-full rounded-md p-1 mt-1 border border-purple-900 shadow-inner">
+          <div className="text-[11px] sm:text-xs font-extrabold text-white truncate px-0.5 whitespace-nowrap">
             {player.webName || player.name}
           </div>
           <div className="text-[9px] sm:text-[10px] text-emerald-400 font-mono mt-0.5 flex justify-center gap-1 items-center flex-wrap">
@@ -3353,7 +3354,7 @@ export default function SquadRoom() {
                 <span className="text-[8px] font-bold">LIVE</span>
               </span>
             ) : pointsLabel === 'Yet to play' ? (
-              <span className="text-amber-300 text-[8px]">Yet to play</span>
+              <span className="text-amber-300 text-[8px] whitespace-nowrap">Yet to play</span>
             ) : (
               <span>{effectivePoints}</span>
             )}
