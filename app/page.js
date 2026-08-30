@@ -1870,24 +1870,24 @@ export default function SquadRoom() {
                      <span className="text-[#00ff87] font-bold">Manager plan</span>
                    </div>
 
-                          <div className="relative flex-1 min-h-0 mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '3/4', backgroundColor: '#00a000', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35)' }}>
-                             <img src="/football-field.svg?v=2" alt="Football pitch" className="absolute inset-0 w-full h-full object-contain pointer-events-none" draggable={false} />
+                         <div className="relative w-full mx-auto rounded-lg overflow-hidden border border-white/50 flex-1 min-h-0" style={{ backgroundColor: '#00a000', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35)' }}>
+                            <img src="/football-field.svg?v=2" alt="Football pitch" className="absolute inset-0 w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                       <div className="absolute inset-0 flex flex-col justify-between py-2 px-1">
-                         <div className="flex justify-center gap-1.5 sm:gap-2">
-                           {startingGK.map(pick => renderPlayerCard(pick))}
-                         </div>
-                         <div className="flex justify-around gap-1 sm:gap-2">
-                           {startingDEF.map(pick => renderPlayerCard(pick))}
-                         </div>
-                         <div className="flex justify-around gap-1 sm:gap-2">
-                           {startingMID.map(pick => renderPlayerCard(pick))}
-                         </div>
-                         <div className="flex justify-around gap-1 sm:gap-2">
-                           {startingFWD.map(pick => renderPlayerCard(pick))}
-                         </div>
-                       </div>
-                     </div>
+                      <div className="absolute inset-0 flex flex-col justify-between py-2 px-1">
+                        <div className="flex justify-center gap-1.5 sm:gap-2">
+                          {startingGK.map(pick => renderPlayerCard(pick))}
+                        </div>
+                        <div className="flex justify-around gap-1 sm:gap-2">
+                          {startingDEF.map(pick => renderPlayerCard(pick))}
+                        </div>
+                        <div className="flex justify-around gap-1 sm:gap-2">
+                          {startingMID.map(pick => renderPlayerCard(pick))}
+                        </div>
+                        <div className="flex justify-around gap-1 sm:gap-2">
+                          {startingFWD.map(pick => renderPlayerCard(pick))}
+                        </div>
+                      </div>
+                    </div>
 
                   <div className="mt-2 sm:mt-4 pt-2 sm:pt-4 pb-3 sm:pb-5 border-t border-white/10 relative z-10 shrink-0">
                    <div className="flex items-center justify-center gap-2 mb-2 sm:mb-3">
@@ -3226,7 +3226,7 @@ export default function SquadRoom() {
                           <span className="text-[#00ff87] font-bold">Manager lineup</span>
                         </div>
 
-                      <div className="relative w-full mx-auto rounded-lg overflow-hidden border border-white/50 flex-1 min-h-0" style={{ aspectRatio: '3/4', backgroundColor: '#00a000', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35)' }}>
+                      <div className="relative w-full mx-auto rounded-lg overflow-hidden border border-white/50 flex-1 min-h-0" style={{ backgroundColor: '#00a000', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35)' }}>
                        <img src="/football-field.svg?v=2" alt="Football pitch" className="absolute inset-0 w-full h-full object-contain pointer-events-none" draggable={false} />
 
                               <div className="absolute inset-0 flex flex-col justify-between py-2 px-1">
