@@ -1286,9 +1286,9 @@ export default function SquadRoom() {
 
     const numericId = Number(cleaned);
     const teamInfo = teamMap[numericId] || Object.values(teamMap).find((team) => Number(team.code) === numericId);
-    const resolvedCode = teamInfo?.code ?? teamShirtMap[numericId] ?? cleaned;
+    const code = (teamInfo?.code ?? teamShirtMap[numericId] ?? cleaned).toUpperCase();
 
-    return `https://resources.premierleague.com/premierleague/badges/${size}/t${resolvedCode}.png`;
+    return `https://resources.premierleague.com/premierleague/badges/${size}/${code}.png`;
   };
 
   const formatLastUpdated = (value) => {
