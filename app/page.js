@@ -1875,7 +1875,7 @@ export default function SquadRoom() {
                              <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
                                 <div className="absolute inset-0 flex flex-col justify-between py-8 sm:py-10 px-1 sm:px-2" style={{ transform: 'perspective(800px) rotateX(-12deg)' }}>
-                                <div className="flex justify-center gap-1 sm:gap-2 mt-4">
+                                 <div className="flex justify-center gap-1 sm:gap-2 mt-6">
                                   {startingGK.map(pick => renderPlayerCard(pick))}
                                 </div>
                                 <div className="flex justify-around gap-1 sm:gap-2">
@@ -1891,12 +1891,12 @@ export default function SquadRoom() {
                             </div>
                           </div>
 
-                 <div className="mt-24 pt-8 pb-8 border-t border-white/10 relative z-10">
-                   <div className="flex items-center justify-center gap-2 mb-4">
-                     <div className="h-px w-8 bg-gradient-to-r from-transparent to-purple-400/60" />
-                     <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-purple-200">Substitutes Bench</p>
-                     <div className="h-px w-8 bg-gradient-to-l from-transparent to-purple-400/60" />
-                   </div>
+                  <div className="mt-28 pt-8 pb-8 border-t border-white/10 relative z-10">
+                    <div className="flex items-center justify-center gap-2 mb-4">
+                      <div className="h-px w-8 bg-gradient-to-r from-transparent to-purple-400/60" />
+                      <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-purple-200">Substitutes Bench</p>
+                      <div className="h-px w-8 bg-gradient-to-l from-transparent to-purple-400/60" />
+                    </div>
                     <div className="flex flex-wrap justify-center gap-2">
                       {substitutes.map(pick => renderPlayerCard(pick, true))}
                     </div>
@@ -3238,7 +3238,7 @@ export default function SquadRoom() {
                              <img src="/football-field.svg" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
                                 <div className="absolute inset-0 flex flex-col justify-between py-8 sm:py-10 px-1 sm:px-2" style={{ transform: 'perspective(800px) rotateX(-12deg)' }}>
-                                 <div className="flex justify-center gap-1 sm:gap-2 mt-4">
+                                <div className="flex justify-center gap-1 sm:gap-2 mt-6">
                                    {overlayGK.map(pick => renderPlayerCard(pick))}
                                  </div>
                                  <div className="flex justify-around gap-1 sm:gap-2">
@@ -3254,12 +3254,12 @@ export default function SquadRoom() {
                                </div>
                            </div>
 
-                 <div className="mt-24 pt-8 pb-8 border-t border-white/10 relative z-10">
-                        <div className="flex items-center justify-center gap-2 mb-4">
-                          <div className="h-px w-8 bg-gradient-to-r from-transparent to-purple-400/60" />
-                          <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-purple-200">Substitutes Bench</p>
-                          <div className="h-px w-8 bg-gradient-to-l from-transparent to-purple-400/60" />
-                        </div>
+                  <div className="mt-28 pt-8 pb-8 border-t border-white/10 relative z-10">
+                         <div className="flex items-center justify-center gap-2 mb-4">
+                           <div className="h-px w-8 bg-gradient-to-r from-transparent to-purple-400/60" />
+                           <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-purple-200">Substitutes Bench</p>
+                           <div className="h-px w-8 bg-gradient-to-l from-transparent to-purple-400/60" />
+                         </div>
                            <div className="flex flex-wrap justify-center gap-2">
                              {overlaySubstitutes.map(pick => renderPlayerCard(pick, true))}
                            </div>
