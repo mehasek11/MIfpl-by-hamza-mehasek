@@ -1271,7 +1271,7 @@ export default function SquadRoom() {
     if (!player) return '';
     const teamCode = teamShirtMap[player.team] || 1;
     const kitType = isGoalkeeper ? '_1' : '';
-    return `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${teamCode}${kitType}-128.png`;
+    return `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${teamCode}${kitType}-66.png`;
   };
 
   const getPlayerPhotoUrl = (photoCode) => {
@@ -1878,31 +1878,26 @@ export default function SquadRoom() {
                         const raw = playerGwPoints[selectedGw]?.[pick.element] ?? pick.stats?.total_points ?? 0;
                         return sum + (pick.multiplier > 0 ? pick.multiplier : 1) * (typeof raw === 'number' ? raw : 0);
                       }, 0);
-                      const avgPoints = allPicks.length ? (totalPoints / allPicks.length).toFixed(1) : '0.0';
-                      const highestPick = allPicks.slice().sort((a, b) => {
-                        const aPts = (playerGwPoints[selectedGw]?.[a.element] ?? a.stats?.total_points ?? 0) * ((a.multiplier > 0 ? a.multiplier : 1));
-                        const bPts = (playerGwPoints[selectedGw]?.[b.element] ?? b.stats?.total_points ?? 0) * ((b.multiplier > 0 ? b.multiplier : 1));
-                        return bPts - aPts;
-                      })[0];
-                      const highestPlayer = highestPick ? playerMap[highestPick.element] : null;
+                      const currentEvent = gameweeks.find(g => g.is_current || g.id === selectedGw);
+                      const avgPoints = currentEvent?.average_entry_score ?? '—';
+                      const highestGlobal = Object.values(playerMap).reduce((max, p) => {
+                        const pts = Number(p.event_points || 0);
+                        return pts > max ? pts : max;
+                      }, 0);
                       return (
                         <div className="mb-4 grid grid-cols-3 gap-2">
                           <div className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center">
-                            <div className="text-[9px] uppercase tracking-widest text-purple-300">GW Total</div>
-                            <div className="text-sm font-black text-white">{totalPoints}</div>
+                            <div className="text-[9px] uppercase tracking-widest text-purple-300">Avg GW</div>
+                            <div className="text-sm font-black text-white">{avgPoints}</div>
+                          </div>
+                          <div className="rounded-xl border border-[#00ff87]/40 bg-[#00ff87]/15 p-2 text-center shadow-[0_0_12px_rgba(0,255,135,0.25)]">
+                            <div className="text-[9px] uppercase tracking-widest text-[#00ff87]">My GW</div>
+                            <div className="text-2xl font-black text-white leading-none">{totalPoints}</div>
                           </div>
                           <div className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center">
-                            <div className="text-[9px] uppercase tracking-widest text-purple-300">Average</div>
-                            <div className="text-sm font-black text-[#00ff87]">{avgPoints}</div>
+                            <div className="text-[9px] uppercase tracking-widest text-purple-300">Highest</div>
+                            <div className="text-sm font-black text-white">{highestGlobal}</div>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => highestPick && handleOpenPlayerModal(highestPick.element)}
-                            className="rounded-xl border border-[#00ff87]/40 bg-[#00ff87]/10 p-2 text-center hover:bg-[#00ff87]/20 transition-colors"
-                          >
-                            <div className="text-[9px] uppercase tracking-widest text-[#00ff87]">Top Scorer</div>
-                            <div className="text-sm font-black text-white truncate">{highestPlayer?.webName || '—'}</div>
-                          </button>
                         </div>
                       );
                     })()}
@@ -3276,31 +3271,26 @@ export default function SquadRoom() {
                              const raw = playerGwPoints[selectedGw]?.[pick.element] ?? pick.stats?.total_points ?? 0;
                              return sum + (pick.multiplier > 0 ? pick.multiplier : 1) * (typeof raw === 'number' ? raw : 0);
                            }, 0);
-                           const avgPoints = allPicks.length ? (totalPoints / allPicks.length).toFixed(1) : '0.0';
-                           const highestPick = allPicks.slice().sort((a, b) => {
-                             const aPts = (playerGwPoints[selectedGw]?.[a.element] ?? a.stats?.total_points ?? 0) * ((a.multiplier > 0 ? a.multiplier : 1));
-                             const bPts = (playerGwPoints[selectedGw]?.[b.element] ?? b.stats?.total_points ?? 0) * ((b.multiplier > 0 ? b.multiplier : 1));
-                             return bPts - aPts;
-                           })[0];
-                           const highestPlayer = highestPick ? playerMap[highestPick.element] : null;
+                           const currentEvent = gameweeks.find(g => g.is_current || g.id === selectedGw);
+                           const avgPoints = currentEvent?.average_entry_score ?? '—';
+                           const highestGlobal = Object.values(playerMap).reduce((max, p) => {
+                             const pts = Number(p.event_points || 0);
+                             return pts > max ? pts : max;
+                           }, 0);
                            return (
                              <div className="mb-4 grid grid-cols-3 gap-2">
                                <div className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center">
-                                 <div className="text-[9px] uppercase tracking-widest text-purple-300">GW Total</div>
-                                 <div className="text-sm font-black text-white">{totalPoints}</div>
+                                 <div className="text-[9px] uppercase tracking-widest text-purple-300">Avg GW</div>
+                                 <div className="text-sm font-black text-white">{avgPoints}</div>
+                               </div>
+                               <div className="rounded-xl border border-[#00ff87]/40 bg-[#00ff87]/15 p-2 text-center shadow-[0_0_12px_rgba(0,255,135,0.25)]">
+                                 <div className="text-[9px] uppercase tracking-widest text-[#00ff87]">My GW</div>
+                                 <div className="text-2xl font-black text-white leading-none">{totalPoints}</div>
                                </div>
                                <div className="rounded-xl border border-white/10 bg-[#26002b]/80 p-2 text-center">
-                                 <div className="text-[9px] uppercase tracking-widest text-purple-300">Average</div>
-                                 <div className="text-sm font-black text-[#00ff87]">{avgPoints}</div>
+                                 <div className="text-[9px] uppercase tracking-widest text-purple-300">Highest</div>
+                                 <div className="text-sm font-black text-white">{highestGlobal}</div>
                                </div>
-                               <button
-                                 type="button"
-                                 onClick={() => highestPick && handleOpenPlayerModal(highestPick.element)}
-                                 className="rounded-xl border border-[#00ff87]/40 bg-[#00ff87]/10 p-2 text-center hover:bg-[#00ff87]/20 transition-colors"
-                               >
-                                 <div className="text-[9px] uppercase tracking-widest text-[#00ff87]">Top Scorer</div>
-                                 <div className="text-sm font-black text-white truncate">{highestPlayer?.webName || '—'}</div>
-                               </button>
                              </div>
                            );
                          })()}
