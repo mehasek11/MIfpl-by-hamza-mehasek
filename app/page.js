@@ -1864,38 +1864,38 @@ export default function SquadRoom() {
                 Loading squad lineup and formation...
               </div>
             ) : (
-                <div className="rounded-3xl p-4 sm:p-5 shadow-2xl relative border border-emerald-400/50 animate-glow-pulse" style={{ background: 'linear-gradient(135deg, #1a0022 0%, #2e0040 50%, #1a0022 100)' }}>
-                  <div className="relative z-10 flex justify-between items-center mb-6 text-[10px] uppercase tracking-[0.3em] text-emerald-100/90">
+                <div className="rounded-3xl p-3 sm:p-5 shadow-2xl relative border border-emerald-400/50 animate-glow-pulse" style={{ background: 'linear-gradient(135deg, #1a0022 0%, #2e0040 50%, #1a0022 100)' }}>
+                  <div className="relative z-10 flex justify-between items-center mb-2 sm:mb-4 text-[10px] uppercase tracking-[0.2em] text-emerald-100/90">
                     <span className="font-bold">Formation {startingDEF.length}-{startingMID.length}-{startingFWD.length}</span>
                     <span className="text-[#00ff87] font-bold">Manager plan</span>
                   </div>
 
-                        <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/5', backgroundColor: '#00a000', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
+                        <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '3/4', backgroundColor: '#00a000', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35), 0 0 15px rgba(0,0,0,0.35)' }}>
                            <img src="/football-field.svg?v=2" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                    <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2">
-                      <div className="flex justify-center gap-1 sm:gap-2">
-                        {startingGK.map(pick => renderPlayerCard(pick))}
-                      </div>
-                      <div className="flex justify-around gap-1 sm:gap-2">
-                        {startingDEF.map(pick => renderPlayerCard(pick))}
-                      </div>
-                      <div className="flex justify-around gap-1 sm:gap-2">
-                        {startingMID.map(pick => renderPlayerCard(pick))}
-                      </div>
-                      <div className="flex justify-around gap-1 sm:gap-2">
-                        {startingFWD.map(pick => renderPlayerCard(pick))}
-                      </div>
-                    </div>
-                  </div>
+                     <div className="absolute inset-0 flex flex-col justify-between py-0.5 sm:py-1 px-0.5 sm:px-1">
+                       <div className="flex justify-center gap-0.5 sm:gap-1">
+                         {startingGK.map(pick => renderPlayerCard(pick))}
+                       </div>
+                       <div className="flex justify-around gap-0.5 sm:gap-1">
+                         {startingDEF.map(pick => renderPlayerCard(pick))}
+                       </div>
+                       <div className="flex justify-around gap-0.5 sm:gap-1">
+                         {startingMID.map(pick => renderPlayerCard(pick))}
+                       </div>
+                       <div className="flex justify-around gap-0.5 sm:gap-1">
+                         {startingFWD.map(pick => renderPlayerCard(pick))}
+                       </div>
+                     </div>
+                   </div>
 
-                <div className="mt-12 pt-6 pb-8 border-t border-white/10 relative z-10">
-                  <div className="flex items-center justify-center gap-2 mb-4">
-                    <div className="h-px w-8 bg-gradient-to-r from-transparent to-purple-400/60" />
-                    <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-purple-200">Substitutes Bench</p>
-                    <div className="h-px w-8 bg-gradient-to-l from-transparent to-purple-400/60" />
+                <div className="mt-3 sm:mt-6 pt-3 sm:pt-5 pb-4 sm:pb-6 border-t border-white/10 relative z-10">
+                  <div className="flex items-center justify-center gap-2 mb-2 sm:mb-3">
+                    <div className="h-px w-6 bg-gradient-to-r from-transparent to-purple-400/60" />
+                    <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-purple-200">Substitutes Bench</p>
+                    <div className="h-px w-6 bg-gradient-to-l from-transparent to-purple-400/60" />
                   </div>
-                   <div className="flex flex-wrap justify-center gap-2">
+                   <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
                      {substitutes.map(pick => renderPlayerCard(pick, true))}
                    </div>
                 </div>
@@ -3219,44 +3219,44 @@ export default function SquadRoom() {
                    {overlayManagerPicks.length === 0 ? (
                      <p className="text-xs text-purple-300 text-center py-6">No picks available for this gameweek.</p>
                    ) : (
-                     <div className="flex justify-center">
-                       <div className="rounded-3xl p-5 shadow-2xl relative border border-emerald-400/50 animate-glow-pulse w-full" style={{ background: 'linear-gradient(135deg, #1a0022 0%, #2e0040 50%, #1a0022 100)' }}>
-                       <div className="relative z-10 flex justify-between items-center mb-6 text-[10px] uppercase tracking-[0.3em] text-emerald-100/90">
-                          <span className="font-bold">Formation {overlayDEF.length}-{overlayMID.length}-{overlayFWD.length}</span>
-                         <span className="text-[#00ff87] font-bold">Manager lineup</span>
-                       </div>
+                      <div className="flex justify-center">
+                        <div className="rounded-3xl p-3 sm:p-5 shadow-2xl relative border border-emerald-400/50 animate-glow-pulse w-full" style={{ background: 'linear-gradient(135deg, #1a0022 0%, #2e0040 50%, #1a0022 100)' }}>
+                        <div className="relative z-10 flex justify-between items-center mb-2 sm:mb-4 text-[10px] uppercase tracking-[0.2em] text-emerald-100/90">
+                           <span className="font-bold">Formation {overlayDEF.length}-{overlayMID.length}-{overlayFWD.length}</span>
+                          <span className="text-[#00ff87] font-bold">Manager lineup</span>
+                        </div>
 
-                   <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '4/5', backgroundColor: '#00a000', boxShadow: 'inset 0 0 30px rgba(0,0,0,0.35), 0 0 20px rgba(0,0,0,0.35)' }}>
-                    <img src="/football-field.svg?v=2" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
+                    <div className="relative w-full max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto rounded-lg overflow-hidden border border-white/50" style={{ aspectRatio: '3/4', backgroundColor: '#00a000', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.35), 0 0 15px rgba(0,0,0,0.35)' }}>
+                     <img src="/football-field.svg?v=2" alt="Football pitch" className="w-full h-full object-contain pointer-events-none" draggable={false} />
 
-                           <div className="absolute inset-0 flex flex-col justify-between py-1 sm:py-2 px-1 sm:px-2">
-                             <div className="flex justify-center gap-1 sm:gap-2">
-                               {overlayGK.map(pick => renderPlayerCard(pick))}
-                             </div>
-                             <div className="flex justify-around gap-1 sm:gap-2">
-                               {overlayDEF.map(pick => renderPlayerCard(pick))}
-                             </div>
-                             <div className="flex justify-around gap-1 sm:gap-2">
-                               {overlayMID.map(pick => renderPlayerCard(pick))}
-                             </div>
-                             <div className="flex justify-around gap-1 sm:gap-2">
-                               {overlayFWD.map(pick => renderPlayerCard(pick))}
-                             </div>
+                            <div className="absolute inset-0 flex flex-col justify-between py-0.5 sm:py-1 px-0.5 sm:px-1">
+                              <div className="flex justify-center gap-0.5 sm:gap-1">
+                                {overlayGK.map(pick => renderPlayerCard(pick))}
+                              </div>
+                              <div className="flex justify-around gap-0.5 sm:gap-1">
+                                {overlayDEF.map(pick => renderPlayerCard(pick))}
+                              </div>
+                              <div className="flex justify-around gap-0.5 sm:gap-1">
+                                {overlayMID.map(pick => renderPlayerCard(pick))}
+                              </div>
+                              <div className="flex justify-around gap-0.5 sm:gap-1">
+                                {overlayFWD.map(pick => renderPlayerCard(pick))}
+                              </div>
+                            </div>
+                         </div>
+
+                 <div className="mt-3 sm:mt-6 pt-3 sm:pt-5 pb-4 sm:pb-6 border-t border-white/10 relative z-10">
+                         <div className="flex items-center justify-center gap-2 mb-2 sm:mb-3">
+                           <div className="h-px w-6 bg-gradient-to-r from-transparent to-purple-400/60" />
+                           <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-purple-200">Substitutes Bench</p>
+                           <div className="h-px w-6 bg-gradient-to-l from-transparent to-purple-400/60" />
+                         </div>
+                           <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
+                             {overlaySubstitutes.map(pick => renderPlayerCard(pick, true))}
                            </div>
                         </div>
-
-                <div className="mt-12 pt-6 pb-8 border-t border-white/10 relative z-10">
-                        <div className="flex items-center justify-center gap-2 mb-4">
-                          <div className="h-px w-8 bg-gradient-to-r from-transparent to-purple-400/60" />
-                          <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-purple-200">Substitutes Bench</p>
-                          <div className="h-px w-8 bg-gradient-to-l from-transparent to-purple-400/60" />
-                        </div>
-                          <div className="flex flex-wrap justify-center gap-2">
-                            {overlaySubstitutes.map(pick => renderPlayerCard(pick, true))}
-                          </div>
-                       </div>
-                     </div>
-                     </div>
+                      </div>
+                      </div>
                    )}
                 </div>
               )}
@@ -3312,45 +3312,45 @@ export default function SquadRoom() {
       <div
         key={pick.element}
         onClick={() => handleOpenPlayerModal(pick.element)}
-        className={`group relative rounded-2xl p-2 sm:p-3 w-28 sm:w-32 md:w-36 text-center transition-all duration-300 cursor-pointer flex flex-col items-center ${
+        className={`group relative rounded-xl p-1 sm:p-2 w-20 sm:w-24 md:w-28 text-center transition-all duration-300 cursor-pointer flex flex-col items-center ${
           isBench
             ? 'bg-[#19001a]/80 border border-purple-800/60 opacity-90 hover:opacity-100 hover:z-50'
             : 'bg-[#19001a]/95 border border-purple-500/40 hover:border-[#00ff87]'
-        } shadow-[0_20px_50px_rgba(0,0,0,0.6)] hover:-translate-y-2 hover:shadow-[0_30px_60px_rgba(0,255,135,0.25)]`}
+        } shadow-[0_8px_20px_rgba(0,0,0,0.5)] hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(0,255,135,0.2)]`}
       >
         {pick.is_captain && (
-          <span className="absolute -top-2 -right-2 bg-gradient-to-br from-yellow-300 to-amber-500 text-[#37003c] text-[10px] font-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(251,191,36,0.6)] z-20 border-2 border-[#37003c] animate-pulse">
+          <span className="absolute -top-1 -right-1 bg-gradient-to-br from-yellow-300 to-amber-500 text-[#37003c] text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-[0_0_6px_rgba(251,191,36,0.6)] z-20 border border-[#37003c] animate-pulse">
             C
           </span>
         )}
         {pick.is_vice_captain && (
-          <span className="absolute -top-2 -right-2 bg-gradient-to-br from-gray-200 to-gray-400 text-[#37003c] text-[10px] font-black w-7 h-7 rounded-full flex items-center justify-center shadow-[0_0_12px_rgba(255,255,255,0.5)] z-20 border-2 border-[#37003c]">
+          <span className="absolute -top-1 -right-1 bg-gradient-to-br from-gray-200 to-gray-400 text-[#37003c] text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-[0_0_6px_rgba(255,255,255,0.5)] z-20 border border-[#37003c]">
             V
           </span>
         )}
 
-        <div className="h-16 flex items-center justify-center my-1">
+        <div className="h-8 sm:h-10 flex items-center justify-center my-0.5">
           {shirtUrl ? (
-            <img src={shirtUrl} alt="kit" loading="lazy" decoding="async" className="h-14 object-contain group-hover:drop-shadow-[0_12px_20px_rgba(0,255,135,0.35)] transition-transform duration-300" />
+            <img src={shirtUrl} alt="kit" loading="lazy" decoding="async" className="h-7 sm:h-8 object-contain group-hover:drop-shadow-[0_4px_10px_rgba(0,255,135,0.3)] transition-transform duration-300" />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-purple-900"></div>
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-purple-900"></div>
           )}
         </div>
 
-        <div className="bg-[#26002b] w-full rounded-xl p-2 mt-2 border border-purple-900 shadow-inner">
-          <div className="text-sm font-extrabold text-white truncate px-1">
+        <div className="bg-[#26002b] w-full rounded-md p-1 sm:p-1.5 mt-0.5 border border-purple-900 shadow-inner">
+          <div className="text-[10px] sm:text-[11px] font-extrabold text-white truncate px-0.5">
             {player.webName || player.name}
           </div>
-          <div className="text-[11px] text-emerald-400 font-mono mt-1 flex justify-center gap-1 items-center flex-wrap">
+          <div className="text-[9px] sm:text-[10px] text-emerald-400 font-mono mt-0.5 flex justify-center gap-1 items-center flex-wrap">
             <span>£{player.now_cost}m</span>
             <span>•</span>
             {pointsLabel === 'LIVE' ? (
               <span className="inline-flex items-center gap-1">
-                <span className="relative flex h-2 w-2">
+                <span className="relative flex h-1 w-1">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00ff87] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00ff87]"></span>
+                  <span className="relative inline-flex rounded-full h-1 w-1 bg-[#00ff87]"></span>
                 </span>
-                <span className="text-[9px] font-bold">LIVE</span>
+                <span className="text-[8px] font-bold">LIVE</span>
               </span>
             ) : pointsLabel === 'Yet to play' ? (
               <span className="text-amber-300">Yet to play</span>
